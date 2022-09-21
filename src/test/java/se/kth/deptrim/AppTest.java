@@ -1,4 +1,4 @@
-package se.kth.castor;
+package se.kth.deptrim;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
