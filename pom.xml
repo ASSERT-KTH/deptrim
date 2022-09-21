@@ -1,0 +1,262 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Coordinates -->
+  <groupId>se.kth.castor</groupId>
+  <artifactId>deptrim</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <!-- Project description-->
+  <name>DepTrim</name>
+  <description>DepTrim automatically diversifies dependencies in Maven projects through software debloating.</description>
+  <url>https://github.com/castor-software/deptrim</url>
+
+  <!-- Issues are managed on GitHub -->
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/castor-software/deptrim/issues</url>
+  </issueManagement>
+
+  <!-- SCM -->
+  <scm>
+    <url>https://github.com/castor-software/deptrim/</url>
+    <connection>scm:git:git:github.com/castor-software/deptrim.git</connection>
+    <developerConnection>scm:git:git@github.com:castor-software/deptrim.git</developerConnection>
+  </scm>
+
+  <!-- License statement -->
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <!-- List of developers -->
+  <developers>
+    <developer>
+      <id>cesarsotovalero</id>
+      <name>César Soto Valero</name>
+      <email>cesarsotovlaero@gmail.com</email>
+      <organization>Castor Software Research Centre</organization>
+      <organizationUrl>https://www.castor.kth.se/</organizationUrl>
+    </developer>
+  </developers>
+
+  <!-- Global properties -->
+  <properties>
+    <!-- Encoding -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <!-- Java version -->
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <compiler.release>17</compiler.release>
+    <javadoc.source>17</javadoc.source>
+    <!-- Plugin versions -->
+    <jacoco.maven.plugin>0.8.8</jacoco.maven.plugin>
+    <coveralls.maven.plugin>4.3.0</coveralls.maven.plugin>
+    <surefire.plugin.version>3.0.0-M3</surefire.plugin.version>
+    <maven.compiler.plugin>3.10.1</maven.compiler.plugin>
+    <sonar.maven.plugin>3.9.1.2184</sonar.maven.plugin>
+    <maven.site.plugin>4.0.0-M3</maven.site.plugin>
+    <maven.project.info.reports.plugin>3.4.1</maven.project.info.reports.plugin>
+    <maven.checkstyle.plugin>3.2.0</maven.checkstyle.plugin>
+    <!-- Dependency versions -->
+    <lombok.version>1.18.24</lombok.version>
+    <slf4j-api.version>2.0.1</slf4j-api.version>
+    <slf4j-reload4j.version>2.0.1</slf4j-reload4j.version>
+    <junit5.version>5.9.0</junit5.version>
+  </properties>
+
+  <!-- List of global dependencies -->
+  <dependencies>
+    <!-- Utils -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-reload4j</artifactId>
+      <version>${slf4j-reload4j.version}</version>
+    </dependency>
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <version>${junit5.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <!-- Build options -->
+  <build>
+    <plugins>
+      <!--JaCoCo plugin-->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.maven.plugin}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Coveralls -->
+      <plugin>
+        <groupId>org.eluder.coveralls</groupId>
+        <artifactId>coveralls-maven-plugin</artifactId>
+        <version>${coveralls.maven.plugin}</version>
+        <dependencies>
+          <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <jacocoReports>
+            <jacocoReport>
+              ${project.basedir}/target/site/jacoco/jacoco.xml
+            </jacocoReport>
+            <jacocoReport>
+              ${project.basedir}/target/site/jacoco/jacoco.xml
+            </jacocoReport>
+          </jacocoReports>
+          <failOnServiceError>false</failOnServiceError>
+        </configuration>
+      </plugin>
+      <!-- SonarCloud -->
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>${sonar.maven.plugin}</version>
+      </plugin>
+      <!-- Checkstyle-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven.checkstyle.plugin}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>8.41</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>check for errors</id>
+            <configuration>
+              <!-- Change to error to enforce strong style rules -->
+              <violationSeverity>error</violationSeverity>
+              <failsOnError>true</failsOnError>
+              <!--  Google style is adopted, https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
+              <configLocation>checkstyle.xml</configLocation>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+            </configuration>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>checkstyle report</id>
+            <configuration>
+              <failsOnError>true</failsOnError>
+              <!--  Google style is adopted, https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
+              <configLocation>checkstyle.xml</configLocation>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+            </configuration>
+            <phase>verify</phase>
+            <goals>
+              <!-- Generate a Checkstyle report -->
+              <goal>checkstyle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Maven compiler plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin}</version>
+        <configuration>
+          <release>17</release>
+        </configuration>
+      </plugin>
+      <!-- Maven site -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven.site.plugin}</version>
+      </plugin>
+      <!-- Maven project info -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${maven.project.info.reports.plugin}</version>
+      </plugin>
+      <!-- Surefire plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.plugin.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>**/resources/**/*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>3.3.0</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+</project>
