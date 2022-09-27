@@ -74,6 +74,12 @@
 
   <!-- List of global dependencies -->
   <dependencies>
+    <!-- Static analysis -->
+    <dependency>
+      <groupId>se.kth.castor</groupId>
+      <artifactId>depclean-core</artifactId>
+      <version>2.0.3</version>
+    </dependency>
     <!-- Utils -->
     <dependency>
       <groupId>org.projectlombok</groupId>
