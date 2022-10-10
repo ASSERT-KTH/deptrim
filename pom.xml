@@ -40,7 +40,7 @@
     <developer>
       <id>cesarsotovalero</id>
       <name>César Soto Valero</name>
-      <email>cesarsotovlaero@gmail.com</email>
+      <email>cesarsotovalero@gmail.com</email>
       <organization>Castor Software Research Centre</organization>
       <organizationUrl>https://www.castor.kth.se/</organizationUrl>
     </developer>
@@ -194,7 +194,6 @@
               <!--  Google style is adopted, https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
               <configLocation>checkstyle.xml</configLocation>
               <includeTestSourceDirectory>true</includeTestSourceDirectory>
-              <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
             </configuration>
             <phase>validate</phase>
@@ -208,7 +207,6 @@
               <failsOnError>true</failsOnError>
               <!--  Google style is adopted, https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
               <configLocation>checkstyle.xml</configLocation>
-              <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
             </configuration>
             <phase>verify</phase>
