@@ -16,6 +16,10 @@ import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
 import se.kth.depclean.core.analysis.AnalysisFailureException;
 import se.kth.depclean.wrapper.MavenDependencyManager;
 
+/**
+ * This Maven mojo is the main class of DepTrim.
+ * DepTrim automatically removes unused types in the project's dependencies.
+ */
 @Mojo(name = "deptrim",
     defaultPhase = LifecyclePhase.PACKAGE,
     requiresDependencyCollection = ResolutionScope.TEST,
@@ -56,8 +60,8 @@ public class DepTrimMojo extends AbstractMojo {
   private boolean createResultJson;
 
   /**
-   * If this is true, DepClean creates a CSV file with the result of the analysis with the columns: OriginClass,TargetClass,OriginDependency,TargetDependency. The file is called
-   * "depclean-callgraph.csv" and it is located in /target.
+   * If this is true, DepClean creates a CSV file with the result of the analysis with the columns: OriginClass,TargetClass,OriginDependency,TargetDependency.
+   * The file is called depclean-callgraph.csv" and it is located in /target.
    */
   @Parameter(property = "createCallGraphCsv", defaultValue = "false")
   private boolean createCallGraphCsv;

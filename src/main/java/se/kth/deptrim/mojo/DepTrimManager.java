@@ -1,6 +1,7 @@
 package se.kth.deptrim.mojo;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -30,7 +31,7 @@ public class DepTrimManager {
 
   private static final String SEPARATOR = "-------------------------------------------------------";
   private static final String DIRECTORY_TO_EXTRACT_DEPENDENCIES = "dependency";
-
+  private static final String DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES = "dependency-debloated";
   private final DependencyManagerWrapper dependencyManager;
   private final boolean skipDepClean;
   private final boolean ignoreTests;
@@ -66,35 +67,27 @@ public class DepTrimManager {
 
     final DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(buildProjectContext());
-    analysis.print();
 
-    /* Fail the build if there are unused direct dependencies */
-    if (failIfUnusedDirect && analysis.hasUnusedDirectDependencies()) {
-      throw new AnalysisFailureException(
-          "Build failed due to unused direct dependencies in the dependency tree of the project.");
-    }
+    // ************************ Code added ********************** //
+    System.out.println("ALL TYPES");
+    analysis.getDependencyClassesMap().forEach((key, value) -> System.out.println(key.getFile().getName() + " -> " + value.getAllTypes()));
+    System.out.println("USED TYPES");
+    analysis.getDependencyClassesMap().forEach((key, value) -> System.out.println(key.getFile().getName() + " -> " + value.getUsedTypes()));
+    System.out.println("UNUSED TYPES");
+    analysis.getDependencyClassesMap().forEach((key, value) -> {
+      Set<ClassName> tmp = new HashSet<>();
+      tmp.addAll(value.getAllTypes());
+      tmp.removeAll(value.getUsedTypes());
+      System.out.println(key.getFile().getName() + " -> " + tmp);
+    });
 
-    /* Fail the build if there are unused transitive dependencies */
-    if (failIfUnusedTransitive && analysis.hasUnusedTransitiveDependencies()) {
-      throw new AnalysisFailureException(
-          "Build failed due to unused transitive dependencies in the dependency tree of the project.");
-    }
 
-    /* Fail the build if there are unused inherited dependencies */
-    if (failIfUnusedInherited && analysis.hasUnusedInheritedDependencies()) {
-      throw new AnalysisFailureException(
-          "Build failed due to unused inherited dependencies in the dependency tree of the project.");
-    }
+    System.out.println("STARTING DEBLOATING DEPENDENCIES");
+    debloatLibClasses(analysis);
 
-    /* Writing the debloated version of the pom */
-    if (createPomDebloated) {
-      dependencyManager.getDebloater(analysis).write();
-    }
+    // ************************ Code added ********************** //
 
-    /* Writing the JSON file with the depclean results */
-    if (createResultJson) {
-      createResultJson(analysis);
-    }
+    //analysis.print();
 
     final long stopTime = System.currentTimeMillis();
     getLog().info("Analysis done in " + getTime(stopTime - startTime));
@@ -127,6 +120,33 @@ public class DepTrimManager {
     if (dependencyDirectory.exists()) {
       JarUtils.decompress(dependencyDirectory.getAbsolutePath());
     }
+  }
+
+  @SneakyThrows
+  private void debloatLibClasses(ProjectDependencyAnalysis analysis) {
+    // copy files from `dependencyDirectory + / + key.getFile().getName() + / + *`
+    // except the files in `value.getUnusedTypes()`
+    analysis
+        .getDependencyClassesMap()
+        .forEach((key, value) -> {
+          Set<ClassName> unusedTypes = new HashSet<>();
+          unusedTypes.addAll(value.getAllTypes());
+          unusedTypes.removeAll(value.getUsedTypes());
+          System.out.println(key.getFile().getName() + " -> " + unusedTypes);
+          File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES).toFile();
+          File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES).toFile();
+          try {
+            FileUtils.copyDirectory(srcDir, destDir, new FileFilter() {
+              @Override
+              public boolean accept(File file) {
+                System.out.println("Copying file " + file.getName() + " with path " + file.getAbsolutePath());
+                return !unusedTypes.contains(new ClassName(file.getName()));
+              }
+            });
+          } catch (IOException e) {
+            getLog().error("Error debloating " + srcDir);
+          }
+        });
   }
 
   private void copyDependencies(Dependency dependency, File destFolder) {
