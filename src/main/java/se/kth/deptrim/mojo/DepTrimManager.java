@@ -25,7 +25,7 @@ import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 import se.kth.depclean.core.wrapper.LogWrapper;
 
 /**
- * Runs the depclean process, regardless of a specific dependency manager.
+ * Runs the DepTrim process, regardless of a specific dependency manager.
  */
 @AllArgsConstructor
 public class DepTrimManager {
@@ -34,41 +34,41 @@ public class DepTrimManager {
   private static final String DIRECTORY_TO_EXTRACT_DEPENDENCIES = "dependency";
   private static final String DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES = "dependency-debloated";
   private final DependencyManagerWrapper dependencyManager;
-  private final boolean skipDepClean;
+  private final boolean skipDepTrim;
   private final boolean ignoreTests;
   private final Set<String> ignoreScopes;
   private final Set<String> ignoreDependencies;
-
   private final Set<String> trimDependencies;
-
-  private final boolean failIfUnusedDirect;
-  private final boolean failIfUnusedTransitive;
-  private final boolean failIfUnusedInherited;
-  private final boolean createPomDebloated;
+  private final boolean createPomTrimmed;
   private final boolean createResultJson;
   private final boolean createCallGraphCsv;
 
   /**
-   * Execute the depClean manager.
+   * Execute the DepTrim manager.
    */
   @SneakyThrows
   public ProjectDependencyAnalysis execute() throws AnalysisFailureException {
     final long startTime = System.currentTimeMillis();
 
-    if (skipDepClean) {
-      getLog().info("Skipping DepClean plugin execution");
+    // Skip DepTrim if the user has specified so.
+    if (skipDepTrim) {
+      getLog().info("Skipping DepTrim plugin execution");
       return null;
     }
-    printString(SEPARATOR);
-    getLog().info("Starting DepClean dependency analysis");
 
+    printString(SEPARATOR);
+    getLog().info("Starting DepTrim dependency analysis");
+
+    // Skip the execution if the packaging is not a JAR or WAR.
     if (dependencyManager.isMaven() && dependencyManager.isPackagingPom()) {
       getLog().info("Skipping because packaging type is pom");
       return null;
     }
 
+    // Extract the dependencies in target/dependencies.
     extractLibClasses();
 
+    // Analyze the dependencies extracted.
     final DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(buildProjectContext());
 
@@ -85,7 +85,9 @@ public class DepTrimManager {
       System.out.println(key.getFile().getName() + " -> " + tmp);
     });
 
-    System.out.println("STARTING DEBLOATING DEPENDENCIES");
+    System.out.println("STARTING TRIMMING DEPENDENCIES");
+    // temporarily hardcode for debloating guava only
+    trimDependencies.add("com.google.guava:guava:17.0");
     debloatLibClasses(analysis, trimDependencies);
 
     // ************************ Code added ********************** //
@@ -125,26 +127,28 @@ public class DepTrimManager {
     }
   }
 
+  /**
+   * Trim the unused classes from the dependencies specified by the user based on the usage analysis results.
+   *
+   * @param analysis         The dependency usage analysis results
+   * @param trimDependencies The dependencies to be trimmed, if empty then trims all the dependencies.
+   */
   @SneakyThrows
   private void debloatLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
-    // temporarily hardcode for debloating guava only
-    trimDependencies.add("com.google.guava:guava:17.0");
-    // copy files from `dependencyDirectory + / + key.getFile().getName() + / + *`
-    // except the files in `value.getUnusedTypes()`
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
           // debloating only dependencies given by the user
           if (trimDependencies.contains(dependencyCoordinates)) {
-            System.out.println("Debloating dependency " + dependencyCoordinates);
+            System.out.println("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
             System.out.println(key.getFile().getName() + " -> " + unusedTypes);
             String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
             File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
-            System.out.println("copying from files from " + srcDir.getAbsolutePath() + " to " + destDir.getAbsolutePath());
+            getLog().info("copying from files from " + srcDir.getAbsolutePath() + " to " + destDir.getAbsolutePath());
             // copy all files from srcDir to destDir
             try {
               FileUtils.copyDirectory(srcDir, destDir);
@@ -164,10 +168,15 @@ public class DepTrimManager {
         });
   }
 
-  private static int deleteEmptyDirectories(File file) {
-    List<File> toBeDeleted = Arrays.stream(file.listFiles()).sorted() //
-        .filter(File::isDirectory) //
-        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f)) //
+  /**
+   * Delete all empty directories in the given directory.
+   *
+   * @param directory the directory to delete empty directories from
+   */
+  private static int deleteEmptyDirectories(File directory) {
+    List<File> toBeDeleted = Arrays.stream(directory.listFiles()).sorted()
+        .filter(File::isDirectory)
+        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f))
         .collect(Collectors.toList());
     int size = toBeDeleted.size();
     toBeDeleted.forEach(t -> {
@@ -176,7 +185,6 @@ public class DepTrimManager {
     });
     return size;
   }
-
 
   private void copyDependencies(Dependency dependency, File destFolder) {
     copyDependencies(dependency.getFile(), destFolder);

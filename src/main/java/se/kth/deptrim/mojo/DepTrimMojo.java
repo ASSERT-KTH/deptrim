@@ -17,8 +17,7 @@ import se.kth.depclean.core.analysis.AnalysisFailureException;
 import se.kth.depclean.wrapper.MavenDependencyManager;
 
 /**
- * This Maven mojo is the main class of DepTrim.
- * DepTrim automatically removes unused types in the project's dependencies.
+ * This Maven mojo is the main class of DepTrim. DepTrim automatically removes unused types in the project's dependencies.
  */
 @Mojo(name = "deptrim",
     defaultPhase = LifecyclePhase.PACKAGE,
@@ -41,74 +40,55 @@ public class DepTrimMojo extends AbstractMojo {
   private MavenSession session;
 
   /**
-   * Add a list of dependencies, identified by their coordinates, to be trimmed by DepTrim during the execution.
-   * The format of each dependency is <code>groupId:artifactId:version</code>.
+   * Add a list of dependencies, identified by their coordinates, to be trimmed by DepTrim during the execution. The format of each dependency is <code>groupId:artifactId:version</code>.
    */
   @Parameter(property = "trimDependencies")
   private Set<String> trimDependencies;
 
   /**
-   * If this is true, DepClean creates a debloated version of the pom without unused dependencies, called "debloated-pom.xml", in root of the project.
+   * If this is true, DepTrim creates version of the pom with the trimmed dependencies, called "trimmed-pom.xml", in root of the project.
    */
-  @Parameter(property = "createPomDebloated", defaultValue = "false")
-  private boolean createPomDebloated;
+  @Parameter(property = "createPomTrimmed", defaultValue = "false")
+  private boolean createPomTrimmed;
 
   /**
-   * If this is true, DepClean creates a JSON file with the result of the analysis. The file is called "debloat-result.json" and it is located in /target.
+   * If this is true, DepTrim creates a JSON file with the result of the analysis. The file is called "trimming-result.json" and it is located in /target.
    */
   @Parameter(property = "createResultJson", defaultValue = "false")
   private boolean createResultJson;
 
   /**
-   * If this is true, DepClean creates a CSV file with the result of the analysis with the columns: OriginClass,TargetClass,OriginDependency,TargetDependency.
-   * The file is called depclean-callgraph.csv" and it is located in /target.
+   * If this is true, DepTrim creates a CSV file with the result of the analysis with the columns: OriginClass,TargetClass,OriginDependency,TargetDependency. The file is called deptrim-callgraph.csv"
+   * and it is located in /target.
    */
   @Parameter(property = "createCallGraphCsv", defaultValue = "false")
   private boolean createCallGraphCsv;
 
   /**
-   * Add a list of dependencies, identified by their coordinates, to be ignored by DepClean during the analysis and considered as used dependencies. Useful to override incomplete result caused by
-   * bytecode-level analysis Dependency format is <code>groupId:artifactId:version</code>.
+   * Add a list of dependencies, identified by their coordinates, to be ignored by DepTrim during the analysis and considered as fully used dependencies. Useful to override incomplete result caused by
+   * bytecode-level analysis. Dependency format is <code>groupId:artifactId:version</code>.
    */
   @Parameter(property = "ignoreDependencies")
   private Set<String> ignoreDependencies;
 
   /**
-   * Ignore dependencies with specific scopes from the DepClean analysis.
+   * Ignore dependencies with specific scopes.
    */
   @Parameter(property = "ignoreScopes")
   private Set<String> ignoreScopes;
 
   /**
-   * If this is true, DepClean will not analyze the test sources in the project, and, therefore, the dependencies that are only used for testing will be considered unused. This property is useful to
-   * detect dependencies that have a compile scope but are only used during testing. Hence, these dependencies should have a test scope.
+   * If this is true, DepTrim will not analyze the test sources in the project, and, therefore, the dependencies that are only used for testing will be considered as fully used. This property is
+   * useful to  detect dependencies that have compilation scope but are only used during testing. Hence, these dependencies should have a test scope.
    */
   @Parameter(property = "ignoreTests", defaultValue = "false")
   private boolean ignoreTests;
 
   /**
-   * If this is true, and DepClean reported any unused direct dependency in the dependency tree, then the project's build fails immediately after running DepClean.
-   */
-  @Parameter(property = "failIfUnusedDirect", defaultValue = "false")
-  private boolean failIfUnusedDirect;
-
-  /**
-   * If this is true, and DepClean reported any unused transitive dependency in the dependency tree, then the project's build fails immediately after running DepClean.
-   */
-  @Parameter(property = "failIfUnusedTransitive", defaultValue = "false")
-  private boolean failIfUnusedTransitive;
-
-  /**
-   * If this is true, and DepClean reported any unused inherited dependency in the dependency tree, then the project's build fails immediately after running DepClean.
-   */
-  @Parameter(property = "failIfUnusedInherited", defaultValue = "false")
-  private boolean failIfUnusedInherited;
-
-  /**
    * Skip plugin execution completely.
    */
-  @Parameter(property = "skipDepClean", defaultValue = "false")
-  private boolean skipDepClean;
+  @Parameter(property = "skipDepTrim", defaultValue = "false")
+  private boolean skipDepTrim;
 
   /**
    * To build the dependency graph.
@@ -127,15 +107,12 @@ public class DepTrimMojo extends AbstractMojo {
               session,
               dependencyGraphBuilder
           ),
-          skipDepClean,
+          skipDepTrim,
           ignoreTests,
           ignoreScopes,
           ignoreDependencies,
           trimDependencies,
-          failIfUnusedDirect,
-          failIfUnusedTransitive,
-          failIfUnusedInherited,
-          createPomDebloated,
+          createPomTrimmed,
           createResultJson,
           createCallGraphCsv
       ).execute();
