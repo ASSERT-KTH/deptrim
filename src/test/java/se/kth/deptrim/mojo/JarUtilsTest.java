@@ -30,7 +30,7 @@ class JarUtilsTest {
 
   @Test
   void ifCreateJarFromDirectoryThenJarShouldExist() throws Exception {
-    jarUtils.createJarFromDirectory(temporaryFolder.getRoot(), "test.jar");
+    jarUtils.createJarFromDirectory(temporaryFolder.getRoot(), jarFile);
     Assertions.assertTrue(jarFile.exists() && !jarFile.isDirectory());
   }
 

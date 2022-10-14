@@ -16,11 +16,11 @@ public class JarUtils {
    * Create a Jar file from a directory.
    *
    * @param directory The directory to be archived.
-   * @param jarName   The name of the jar file.
+   * @param jarFile   The jar file to be created.
    * @throws Exception if an error occurs.
    */
-  public void createJarFromDirectory(File directory, String jarName) throws Exception {
-    JarOutputStream target = new JarOutputStream(new FileOutputStream(jarName));
+  public static void createJarFromDirectory(File directory, File jarFile) throws Exception {
+    JarOutputStream target = new JarOutputStream(new FileOutputStream(jarFile));
     for (File file : directory.listFiles()) {
       addFile("", file, target);
     }
@@ -35,7 +35,7 @@ public class JarUtils {
    * @param target  The jar file.
    * @throws Exception if an error occurs.
    */
-  private void addFile(String parents, File source, JarOutputStream target) throws Exception {
+  private static void addFile(String parents, File source, JarOutputStream target) throws Exception {
     BufferedInputStream in = null;
     try {
       String name = (parents + source.getName()).replace("\\", "/");

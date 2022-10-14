@@ -1,14 +1,19 @@
 package se.kth.deptrim.mojo;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -90,7 +95,7 @@ public class DepTrimManager {
 
     // ************************ Code added ********************** //
 
-    //analysis.print();
+    // analysis.print();
 
     final long stopTime = System.currentTimeMillis();
     getLog().info("Analysis done in " + getTime(stopTime - startTime));
@@ -137,8 +142,8 @@ public class DepTrimManager {
         .getDependencyClassesMap()
         .forEach((key, value) -> {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
-          // debloating only dependencies given by the user
-          if (trimDependencies.contains(dependencyCoordinates)) {
+          // debloating only the dependencies provided by the user and if the scope is not ignored
+          if (trimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope())) {
             printString("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
@@ -162,6 +167,17 @@ public class DepTrimManager {
             }
             // Delete all empty directories in destDir
             deleteEmptyDirectories(destDir);
+
+            // Create a new jar file with the debloated classes and move it to lib-deptrim
+            Path libDeptrimPath = Paths.get("lib-deptrim");
+            String jarName = destDir.getName() + ".jar";
+            File jarFile = libDeptrimPath.resolve(jarName).toFile();
+            try {
+              Files.createDirectories(libDeptrimPath); // create lib-deptrim directory if it does not exist
+              se.kth.deptrim.mojo.JarUtils.createJarFromDirectory(destDir, jarFile);
+            } catch (Exception e) {
+              getLog().error("Error creating trimmed jar for " + destDir.getName());
+            }
           }
         });
   }
@@ -171,7 +187,7 @@ public class DepTrimManager {
    *
    * @param directory the directory to delete empty directories from
    */
-  private static int deleteEmptyDirectories(File directory) {
+  private int deleteEmptyDirectories(File directory) {
     List<File> toBeDeleted = Arrays.stream(directory.listFiles()).sorted()
         .filter(File::isDirectory)
         .filter(f -> f.listFiles().length == deleteEmptyDirectories(f))
@@ -181,7 +197,7 @@ public class DepTrimManager {
       final String path = t.getAbsolutePath();
       final boolean delete = t.delete();
     });
-    return size;
+    return size; // the number of deleted directories.
   }
 
   private void copyDependencies(Dependency dependency, File destFolder) {
