@@ -73,21 +73,19 @@ public class DepTrimManager {
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(buildProjectContext());
 
     // ************************ Code added ********************** //
-    System.out.println("ALL TYPES");
-    analysis.getDependencyClassesMap().forEach((key, value) -> System.out.println(key.getFile().getName() + " -> " + value.getAllTypes()));
-    System.out.println("USED TYPES");
-    analysis.getDependencyClassesMap().forEach((key, value) -> System.out.println(key.getFile().getName() + " -> " + value.getUsedTypes()));
-    System.out.println("UNUSED TYPES");
+    printString("ALL TYPES");
+    analysis.getDependencyClassesMap().forEach((key, value) -> printString(key.getFile().getName() + " -> " + value.getAllTypes()));
+    printString("USED TYPES");
+    analysis.getDependencyClassesMap().forEach((key, value) -> printString(key.getFile().getName() + " -> " + value.getUsedTypes()));
+    printString("UNUSED TYPES");
     analysis.getDependencyClassesMap().forEach((key, value) -> {
       Set<ClassName> tmp = new HashSet<>();
       tmp.addAll(value.getAllTypes());
       tmp.removeAll(value.getUsedTypes());
-      System.out.println(key.getFile().getName() + " -> " + tmp);
+      printString(key.getFile().getName() + " -> " + tmp);
     });
 
-    System.out.println("STARTING TRIMMING DEPENDENCIES");
-    // temporarily hardcode for debloating guava only
-    trimDependencies.add("com.google.guava:guava:17.0");
+    printString("STARTING TRIMMING DEPENDENCIES");
     debloatLibClasses(analysis, trimDependencies);
 
     // ************************ Code added ********************** //
@@ -141,10 +139,10 @@ public class DepTrimManager {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
           // debloating only dependencies given by the user
           if (trimDependencies.contains(dependencyCoordinates)) {
-            System.out.println("Trimming dependency " + dependencyCoordinates);
+            printString("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
-            System.out.println(key.getFile().getName() + " -> " + unusedTypes);
+            printString(key.getFile().getName() + " -> " + unusedTypes);
             String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
             File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
@@ -159,7 +157,7 @@ public class DepTrimManager {
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
-              System.out.println("Removing file " + file.getAbsolutePath());
+              printString("Removing file " + file.getAbsolutePath());
               file.delete();
             }
             // Delete all empty directories in destDir
