@@ -3,7 +3,9 @@ package se.kth.deptrim.mojo;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -153,12 +155,28 @@ public class DepTrimManager {
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
-              System.out.println("removing file " + file.getAbsolutePath());
+              System.out.println("Removing file " + file.getAbsolutePath());
               file.delete();
             }
+            // Delete all empty directories in destDir
+            deleteEmptyDirectories(destDir);
           }
         });
   }
+
+  private static int deleteEmptyDirectories(File file) {
+    List<File> toBeDeleted = Arrays.stream(file.listFiles()).sorted() //
+        .filter(File::isDirectory) //
+        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f)) //
+        .collect(Collectors.toList());
+    int size = toBeDeleted.size();
+    toBeDeleted.forEach(t -> {
+      final String path = t.getAbsolutePath();
+      final boolean delete = t.delete();
+    });
+    return size;
+  }
+
 
   private void copyDependencies(Dependency dependency, File destFolder) {
     copyDependencies(dependency.getFile(), destFolder);
