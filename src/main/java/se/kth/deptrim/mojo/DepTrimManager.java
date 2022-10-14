@@ -1,7 +1,6 @@
 package se.kth.deptrim.mojo;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -37,6 +36,9 @@ public class DepTrimManager {
   private final boolean ignoreTests;
   private final Set<String> ignoreScopes;
   private final Set<String> ignoreDependencies;
+
+  private final Set<String> trimDependencies;
+
   private final boolean failIfUnusedDirect;
   private final boolean failIfUnusedTransitive;
   private final boolean failIfUnusedInherited;
@@ -81,9 +83,8 @@ public class DepTrimManager {
       System.out.println(key.getFile().getName() + " -> " + tmp);
     });
 
-
     System.out.println("STARTING DEBLOATING DEPENDENCIES");
-    debloatLibClasses(analysis);
+    debloatLibClasses(analysis, trimDependencies);
 
     // ************************ Code added ********************** //
 
@@ -123,28 +124,38 @@ public class DepTrimManager {
   }
 
   @SneakyThrows
-  private void debloatLibClasses(ProjectDependencyAnalysis analysis) {
+  private void debloatLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
+    // temporarily hardcode for debloating guava only
+    trimDependencies.add("com.google.guava:guava:17.0");
     // copy files from `dependencyDirectory + / + key.getFile().getName() + / + *`
     // except the files in `value.getUnusedTypes()`
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
-          Set<ClassName> unusedTypes = new HashSet<>();
-          unusedTypes.addAll(value.getAllTypes());
-          unusedTypes.removeAll(value.getUsedTypes());
-          System.out.println(key.getFile().getName() + " -> " + unusedTypes);
-          File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES).toFile();
-          File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES).toFile();
-          try {
-            FileUtils.copyDirectory(srcDir, destDir, new FileFilter() {
-              @Override
-              public boolean accept(File file) {
-                System.out.println("Copying file " + file.getName() + " with path " + file.getAbsolutePath());
-                return !unusedTypes.contains(new ClassName(file.getName()));
-              }
-            });
-          } catch (IOException e) {
-            getLog().error("Error debloating " + srcDir);
+          String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
+          // debloating only dependencies given by the user
+          if (trimDependencies.contains(dependencyCoordinates)) {
+            System.out.println("Debloating dependency " + dependencyCoordinates);
+            Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
+            unusedTypes.removeAll(value.getUsedTypes());
+            System.out.println(key.getFile().getName() + " -> " + unusedTypes);
+            String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
+            File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
+            File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
+            System.out.println("copying from files from " + srcDir.getAbsolutePath() + " to " + destDir.getAbsolutePath());
+            // copy all files from srcDir to destDir
+            try {
+              FileUtils.copyDirectory(srcDir, destDir);
+            } catch (IOException e) {
+              getLog().error("Error copying files from " + srcDir + " to " + destDir);
+            }
+            // remove files in destDir
+            for (ClassName className : unusedTypes) {
+              String fileName = className.toString().replace(".", File.separator) + ".class";
+              File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
+              System.out.println("removing file " + file.getAbsolutePath());
+              file.delete();
+            }
           }
         });
   }

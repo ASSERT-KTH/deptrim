@@ -131,6 +131,7 @@ public class DepTrimMojo extends AbstractMojo {
           ignoreTests,
           ignoreScopes,
           ignoreDependencies,
+          trimDependencies,
           failIfUnusedDirect,
           failIfUnusedTransitive,
           failIfUnusedInherited,
