@@ -13,8 +13,7 @@
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=sqale_index)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
 
-
-# What is DepTrim?
+## What is DepTrim?
 
 DepTrim automatically diversifies dependencies in Maven projects for hardening its [software supply chain](https://www.cesarsotovalero.net/blog/the-software-supply-chain.html).
 To do so, it creates different variants of the dependencies in the dependency tree of a project.
@@ -22,7 +21,7 @@ DepTrim works as a Maven plugin.
 It can be executed as a Maven goal through the command line or integrated directly into the Maven build lifecycle (CI/CD).
 DepTrim does not modify the original source code of the project nor its original `pom.xml`.
 
-# Usage
+## Usage
 
 Configure the pom.xml file of your Maven project to use DepTrim as part of the build:
 
@@ -49,7 +48,7 @@ mvn compiler:testCompile
 mvn se.kth.castor:deptrim-maven-plugin:{DEPTRIM_LATEST_VERSION}:deptrim
 ```
 
-# Optional Parameters
+## Optional Parameters
 
 The `deptrim-maven-plugin` can be configured with the following additional parameters.
 
@@ -66,7 +65,7 @@ The `deptrim-maven-plugin` can be configured with the following additional param
 
 [//]: # (TODO: Explain here how to integrate DepTrim in the CI/CD pipeline so that a different variant of the dependencies is used for each build.)
 
-# How does DepTrim works?
+## How does DepTrim works?
 
 DepTrim runs before executing the `package` phase of the Maven build lifecycle. 
 It relies on [DepClean](https://github.com/castor-software/depclean) to statically collects all the types referenced in the project under analysis as well as in its dependencies. 
