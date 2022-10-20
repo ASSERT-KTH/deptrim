@@ -1,8 +1,18 @@
-# DepTrim <img src="https://github.com/castor-software/depclean/blob/master/.img/logo.svg" align="left" height="135px" alt="DepClean logo"/>
+# DepTrim <img src=".img/logo.svg" align="left" height="135px" alt="DepTrim logo"/>
 
 [![build](https://github.com/castor-software/deptrim/actions/workflows/build.yml/badge.svg)](https://github.com/castor-software/deptrim/actions/workflows/build.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=alert_status)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
 [![codecov](https://codecov.io/gh/castor-software/deptrim/branch/main/graph/badge.svg?token=L70YMFGJ4D)](https://codecov.io/gh/castor-software/deptrim)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=security_rating)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=bugs)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=code_smells)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=ncloc)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=sqale_index)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
+
 
 # What is DepTrim?
 
