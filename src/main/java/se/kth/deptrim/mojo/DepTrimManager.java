@@ -1,19 +1,14 @@
 package se.kth.deptrim.mojo;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -28,6 +23,8 @@ import se.kth.depclean.core.model.Scope;
 import se.kth.depclean.core.util.JarUtils;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 import se.kth.depclean.core.wrapper.LogWrapper;
+import se.kth.depclean.util.MavenInvoker;
+import se.kth.deptrim.mojo.util.TimeUtils;
 
 /**
  * Runs the DepTrim process, regardless of a specific dependency manager.
@@ -91,14 +88,15 @@ public class DepTrimManager {
     });
 
     printString("STARTING TRIMMING DEPENDENCIES");
-    debloatLibClasses(analysis, trimDependencies);
+    trimLibClasses(analysis, trimDependencies);
 
     // ************************ Code added ********************** //
 
     // analysis.print();
 
     final long stopTime = System.currentTimeMillis();
-    getLog().info("Analysis done in " + getTime(stopTime - startTime));
+    TimeUtils timeUtils = new TimeUtils();
+    getLog().info("Analysis done in " + timeUtils.toHumanReadableTime(stopTime - startTime));
 
     return analysis;
   }
@@ -137,7 +135,7 @@ public class DepTrimManager {
    * @param trimDependencies The dependencies to be trimmed, if empty then trims all the dependencies.
    */
   @SneakyThrows
-  private void debloatLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
+  private void trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
@@ -152,52 +150,50 @@ public class DepTrimManager {
             File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             getLog().info("copying from files from " + srcDir.getAbsolutePath() + " to " + destDir.getAbsolutePath());
-            // copy all files from srcDir to destDir
+
+            // Copy all files from srcDir to destDir
             try {
               FileUtils.copyDirectory(srcDir, destDir);
             } catch (IOException e) {
               getLog().error("Error copying files from " + srcDir + " to " + destDir);
             }
-            // remove files in destDir
+            // Remove files in destDir.
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
               printString("Removing file " + file.getAbsolutePath());
               file.delete();
             }
-            // Delete all empty directories in destDir
-            deleteEmptyDirectories(destDir);
+            // Delete all empty directories in destDir.
+            se.kth.deptrim.mojo.util.FileUtils fileUtils = new se.kth.deptrim.mojo.util.FileUtils();
+            fileUtils.deleteEmptyDirectories(destDir);
 
-            // Create a new jar file with the debloated classes and move it to lib-deptrim
-            Path libDeptrimPath = Paths.get("lib-deptrim");
+            // Create a new jar file with the debloated classes and move it to libs-deptrim.
+            Path libDeptrimPath = Paths.get("libs-deptrim");
             String jarName = destDir.getName() + ".jar";
             File jarFile = libDeptrimPath.resolve(jarName).toFile();
             try {
-              Files.createDirectories(libDeptrimPath); // create lib-deptrim directory if it does not exist
-              se.kth.deptrim.mojo.JarUtils.createJarFromDirectory(destDir, jarFile);
+              Files.createDirectories(libDeptrimPath); // create libs-deptrim directory if it does not exist
+              se.kth.deptrim.mojo.util.JarUtils.createJarFromDirectory(destDir, jarFile);
             } catch (Exception e) {
               getLog().error("Error creating trimmed jar for " + destDir.getName());
             }
+
+            // Install the dependency in the local repository.
+            try {
+              MavenInvoker.runCommand(
+                  "mvn deploy:deploy-file -Durl=" + libDeptrimPath +
+                      " -Dpackaging=jar" +
+                      " -Dfile=" + jarFile.getAbsolutePath() +
+                      " -DgroupId=" + key.getGroupId() +
+                      " -DartifactId=" + key.getDependencyId() +
+                      " -Dversion=" + key.getVersion(),
+                  null);
+            } catch (IOException | InterruptedException e) {
+              getLog().error("Error installing the trimmed dependency jar in local repo");
+            }
           }
         });
-  }
-
-  /**
-   * Delete all empty directories in the given directory.
-   *
-   * @param directory the directory to delete empty directories from
-   */
-  private int deleteEmptyDirectories(File directory) {
-    List<File> toBeDeleted = Arrays.stream(directory.listFiles()).sorted()
-        .filter(File::isDirectory)
-        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f))
-        .collect(Collectors.toList());
-    int size = toBeDeleted.size();
-    toBeDeleted.forEach(t -> {
-      final String path = t.getAbsolutePath();
-      final boolean delete = t.delete();
-    });
-    return size; // the number of deleted directories.
   }
 
   private void copyDependencies(Dependency dependency, File destFolder) {
@@ -305,12 +301,6 @@ public class DepTrimManager {
         .filter(dep -> dep.toString().toLowerCase().contains(dependency.toLowerCase()))
         .findFirst()
         .orElse(null);
-  }
-
-  private String getTime(long millis) {
-    long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
-    long seconds = (TimeUnit.MILLISECONDS.toSeconds(millis) % 60);
-    return String.format("%smin %ss", minutes, seconds);
   }
 
   private void printString(final String string) {

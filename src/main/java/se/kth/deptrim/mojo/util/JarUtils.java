@@ -1,4 +1,4 @@
-package se.kth.deptrim.mojo;
+package se.kth.deptrim.mojo.util;
 
 import java.io.BufferedInputStream;
 import java.io.File;
