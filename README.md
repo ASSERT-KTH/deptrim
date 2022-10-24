@@ -15,7 +15,7 @@
 
 ## What is DepTrim?
 
-DepTrim automatically diversifies dependencies in Maven projects for hardening its [software supply chain](https://www.cesarsotovalero.net/blog/the-software-supply-chain.html).
+DepTrim automatically diversifies dependencies in Maven projects with the objective of hardening its [software supply chain](https://www.cesarsotovalero.net/blog/the-software-supply-chain.html).
 To do so, it creates different variants of the dependencies in the dependency tree of a project.
 DepTrim works as a Maven plugin.
 It can be executed as a Maven goal through the command line or integrated directly into the Maven build lifecycle (CI/CD).
