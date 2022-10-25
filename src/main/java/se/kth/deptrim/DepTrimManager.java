@@ -60,7 +60,7 @@ public class DepTrimManager {
       return null;
     }
 
-    consolePrinter.printString(SEPARATOR);
+    getLog().info(SEPARATOR);
     getLog().info("Starting DepTrim dependency analysis");
 
     // Skip the execution if the packaging is not a JAR or WAR.
@@ -73,25 +73,25 @@ public class DepTrimManager {
     extractLibClasses();
 
     // Analyze the dependencies extracted.
+    getLog().info("Analyzing dependencies...");
     final DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(buildProjectContext());
-
-    // ************************ Code added ********************** //
     consolePrinter.printDependencyUsageAnalysis(analysis);
 
-    consolePrinter.printString("STARTING TRIMMING DEPENDENCIES");
+    // Trimming dependencies.
+    getLog().info("STARTING TRIMMING DEPENDENCIES");
     trimLibClasses(analysis, trimDependencies);
+    consolePrinter.printDependencyUsageAnalysis(analysis);
 
-    // ************************ Code added ********************** //
-
-    // analysis.print();
-
+    // Print execution time.
     final long stopTime = System.currentTimeMillis();
     TimeUtils timeUtils = new TimeUtils();
-    getLog().info("Analysis done in " + timeUtils.toHumanReadableTime(stopTime - startTime));
+    getLog().info("DepTrim execution done in " + timeUtils.toHumanReadableTime(stopTime - startTime));
 
     return analysis;
   }
+
+
 
   @SneakyThrows
   private void extractLibClasses() {
@@ -128,17 +128,16 @@ public class DepTrimManager {
    */
   @SneakyThrows
   private void trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
-    ConsolePrinter consolePrinter = new ConsolePrinter();
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
           // debloating only the dependencies provided by the user and if the scope is not ignored
           if (trimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope())) {
-            consolePrinter.printString("Trimming dependency " + dependencyCoordinates);
+            getLog().info("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
-            consolePrinter.printString(key.getFile().getName() + " -> " + unusedTypes);
+            getLog().info(key.getFile().getName() + " -> " + unusedTypes);
             String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
             File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
@@ -154,7 +153,7 @@ public class DepTrimManager {
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
-              consolePrinter.printString("Removing file " + file.getAbsolutePath());
+              getLog().info("Removing file " + file.getAbsolutePath());
               file.delete();
             }
             // Delete all empty directories in destDir.
@@ -199,8 +198,7 @@ public class DepTrimManager {
   }
 
   private void createResultJson(ProjectDependencyAnalysis analysis) {
-    ConsolePrinter consolePrinter = new ConsolePrinter();
-    consolePrinter.printString("Creating depclean-results.json, please wait...");
+    getLog().info("Creating depclean-results.json, please wait...");
     final File jsonFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-results.json");
     final File treeFile = new File(dependencyManager.getBuildDirectory() + File.separator + "tree.txt");
     final File csvFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-callgraph.csv");
@@ -213,7 +211,7 @@ public class DepTrimManager {
       return;
     }
     if (createCallGraphCsv) {
-      consolePrinter.printString("Creating " + csvFile.getName() + ", please wait...");
+      getLog().info("Creating " + csvFile.getName() + ", please wait...");
       try {
         FileUtils.write(csvFile, "OriginClass,TargetClass,OriginDependency,TargetDependency\n", Charset.defaultCharset());
       } catch (IOException e) {
