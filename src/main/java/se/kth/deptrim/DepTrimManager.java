@@ -182,12 +182,12 @@ public class DepTrimManager {
             // Install the dependency in the local repository.
             try {
               MavenInvoker.runCommand(
-                  "mvn deploy:deploy-file -Durl=" + libDeptrimPath +
-                      " -Dpackaging=jar" +
-                      " -Dfile=" + jarFile.getAbsolutePath() +
-                      " -DgroupId=" + key.getGroupId() +
-                      " -DartifactId=" + key.getDependencyId() +
-                      " -Dversion=" + key.getVersion(),
+                  "mvn deploy:deploy-file -Durl=" + libDeptrimPath
+                      + " -Dpackaging=jar"
+                      + " -Dfile=" + jarFile.getAbsolutePath()
+                      + " -DgroupId=" + key.getGroupId()
+                      + " -DartifactId=" + key.getDependencyId()
+                      + " -Dversion=" + key.getVersion(),
                   null);
             } catch (IOException | InterruptedException e) {
               getLog().error("Error installing the trimmed dependency jar in local repo");
