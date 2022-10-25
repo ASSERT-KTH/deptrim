@@ -2,6 +2,7 @@ package se.kth.deptrim.util;
 
 import java.io.File;
 import java.io.IOException;
+import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ class JarUtilsTest {
   File jarFile;
 
   @BeforeEach
+  @Rule
   void setUp() {
     jarUtils = new JarUtils();
     jarFile = new File("test.jar");
@@ -35,6 +37,7 @@ class JarUtilsTest {
   }
 
   @AfterEach
+  @Rule
   void tearDown() {
     temporaryFolder.delete();
     jarFile.delete();
