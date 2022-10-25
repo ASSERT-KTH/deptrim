@@ -24,6 +24,7 @@ import se.kth.depclean.core.util.JarUtils;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 import se.kth.depclean.core.wrapper.LogWrapper;
 import se.kth.depclean.util.MavenInvoker;
+import se.kth.deptrim.io.ConsolePrinter;
 import se.kth.deptrim.util.TimeUtils;
 
 /**
@@ -51,6 +52,7 @@ public class DepTrimManager {
   @SneakyThrows
   public ProjectDependencyAnalysis execute() throws AnalysisFailureException {
     final long startTime = System.currentTimeMillis();
+    ConsolePrinter consolePrinter = new ConsolePrinter();
 
     // Skip DepTrim if the user has specified so.
     if (skipDepTrim) {
@@ -58,16 +60,16 @@ public class DepTrimManager {
       return null;
     }
 
-    printString(SEPARATOR);
+    consolePrinter.printString(SEPARATOR);
     getLog().info("Starting DepTrim dependency analysis");
 
     // Skip the execution if the packaging is not a JAR or WAR.
     if (dependencyManager.isMaven() && dependencyManager.isPackagingPom()) {
-      getLog().info("Skipping because packaging type is pom");
+      getLog().info("Skipping DepTrim because the packaging type is pom");
       return null;
     }
 
-    // Extract the dependencies in target/dependencies.
+    // Extract all the dependencies in target/dependencies.
     extractLibClasses();
 
     // Analyze the dependencies extracted.
@@ -75,19 +77,9 @@ public class DepTrimManager {
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(buildProjectContext());
 
     // ************************ Code added ********************** //
-    printString("ALL TYPES");
-    analysis.getDependencyClassesMap().forEach((key, value) -> printString(key.getFile().getName() + " -> " + value.getAllTypes()));
-    printString("USED TYPES");
-    analysis.getDependencyClassesMap().forEach((key, value) -> printString(key.getFile().getName() + " -> " + value.getUsedTypes()));
-    printString("UNUSED TYPES");
-    analysis.getDependencyClassesMap().forEach((key, value) -> {
-      Set<ClassName> tmp = new HashSet<>();
-      tmp.addAll(value.getAllTypes());
-      tmp.removeAll(value.getUsedTypes());
-      printString(key.getFile().getName() + " -> " + tmp);
-    });
+    consolePrinter.printDependencyUsageAnalysis(analysis);
 
-    printString("STARTING TRIMMING DEPENDENCIES");
+    consolePrinter.printString("STARTING TRIMMING DEPENDENCIES");
     trimLibClasses(analysis, trimDependencies);
 
     // ************************ Code added ********************** //
@@ -136,16 +128,17 @@ public class DepTrimManager {
    */
   @SneakyThrows
   private void trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
+    ConsolePrinter consolePrinter = new ConsolePrinter();
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
           // debloating only the dependencies provided by the user and if the scope is not ignored
           if (trimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope())) {
-            printString("Trimming dependency " + dependencyCoordinates);
+            consolePrinter.printString("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
-            printString(key.getFile().getName() + " -> " + unusedTypes);
+            consolePrinter.printString(key.getFile().getName() + " -> " + unusedTypes);
             String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
             File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
@@ -161,7 +154,7 @@ public class DepTrimManager {
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
-              printString("Removing file " + file.getAbsolutePath());
+              consolePrinter.printString("Removing file " + file.getAbsolutePath());
               file.delete();
             }
             // Delete all empty directories in destDir.
@@ -206,7 +199,8 @@ public class DepTrimManager {
   }
 
   private void createResultJson(ProjectDependencyAnalysis analysis) {
-    printString("Creating depclean-results.json, please wait...");
+    ConsolePrinter consolePrinter = new ConsolePrinter();
+    consolePrinter.printString("Creating depclean-results.json, please wait...");
     final File jsonFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-results.json");
     final File treeFile = new File(dependencyManager.getBuildDirectory() + File.separator + "tree.txt");
     final File csvFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-callgraph.csv");
@@ -219,7 +213,7 @@ public class DepTrimManager {
       return;
     }
     if (createCallGraphCsv) {
-      printString("Creating " + csvFile.getName() + ", please wait...");
+      consolePrinter.printString("Creating " + csvFile.getName() + ", please wait...");
       try {
         FileUtils.write(csvFile, "OriginClass,TargetClass,OriginDependency,TargetDependency\n", Charset.defaultCharset());
       } catch (IOException e) {
@@ -301,10 +295,6 @@ public class DepTrimManager {
         .filter(dep -> dep.toString().toLowerCase().contains(dependency.toLowerCase()))
         .findFirst()
         .orElse(null);
-  }
-
-  private void printString(final String string) {
-    System.out.println(string); //NOSONAR avoid a warning of non-used logger
   }
 
   private LogWrapper getLog() {
