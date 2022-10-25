@@ -2,7 +2,6 @@ package se.kth.deptrim;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,7 +51,6 @@ public class DepTrimManager {
   @SneakyThrows
   public ProjectDependencyAnalysis execute() throws AnalysisFailureException {
     final long startTime = System.currentTimeMillis();
-    ConsolePrinter consolePrinter = new ConsolePrinter();
 
     // Skip DepTrim if the user has specified so.
     if (skipDepTrim) {
@@ -76,6 +74,7 @@ public class DepTrimManager {
     getLog().info("Analyzing dependencies...");
     final DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(buildProjectContext());
+    ConsolePrinter consolePrinter = new ConsolePrinter();
     consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Trimming dependencies.
@@ -90,8 +89,6 @@ public class DepTrimManager {
 
     return analysis;
   }
-
-
 
   @SneakyThrows
   private void extractLibClasses() {
@@ -195,47 +192,6 @@ public class DepTrimManager {
   @SneakyThrows
   private void copyDependencies(File jarFile, File destFolder) {
     FileUtils.copyFileToDirectory(jarFile, destFolder);
-  }
-
-  private void createResultJson(ProjectDependencyAnalysis analysis) {
-    getLog().info("Creating depclean-results.json, please wait...");
-    final File jsonFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-results.json");
-    final File treeFile = new File(dependencyManager.getBuildDirectory() + File.separator + "tree.txt");
-    final File csvFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-callgraph.csv");
-    try {
-      dependencyManager.generateDependencyTree(treeFile);
-    } catch (IOException | InterruptedException e) {
-      getLog().error("Unable to generate dependency tree.");
-      // Restore interrupted state...
-      Thread.currentThread().interrupt();
-      return;
-    }
-    if (createCallGraphCsv) {
-      getLog().info("Creating " + csvFile.getName() + ", please wait...");
-      try {
-        FileUtils.write(csvFile, "OriginClass,TargetClass,OriginDependency,TargetDependency\n", Charset.defaultCharset());
-      } catch (IOException e) {
-        getLog().error("Error writing the CSV header.");
-      }
-    }
-    String treeAsJson = dependencyManager.getTreeAsJson(
-        treeFile,
-        analysis,
-        csvFile,
-        createCallGraphCsv
-    );
-
-    try {
-      FileUtils.write(jsonFile, treeAsJson, Charset.defaultCharset());
-    } catch (IOException e) {
-      getLog().error("Unable to generate " + jsonFile.getName() + " file.");
-    }
-    if (jsonFile.exists()) {
-      getLog().info(jsonFile.getName() + " file created in: " + jsonFile.getAbsolutePath());
-    }
-    if (csvFile.exists()) {
-      getLog().info(csvFile.getName() + " file created in: " + csvFile.getAbsolutePath());
-    }
   }
 
   private ProjectContext buildProjectContext() {
