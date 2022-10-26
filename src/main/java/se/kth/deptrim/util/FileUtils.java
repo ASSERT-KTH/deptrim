@@ -29,7 +29,7 @@ public class FileUtils {
       try {
         Files.delete(t.toPath());
       } catch (IOException e) {
-       log.error("Error deleting file " + t.getAbsolutePath());
+        log.error("Error deleting file " + t.getAbsolutePath());
       }
     });
     return size; // the number of deleted directories.
