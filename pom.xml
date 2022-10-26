@@ -4,9 +4,9 @@
 
   <!-- Coordinates -->
   <groupId>se.kth.castor</groupId>
-  <artifactId>deptrim</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <artifactId>deptrim-maven-plugin</artifactId>
+  <version>0.0.1</version>
+  <packaging>maven-plugin</packaging>
 
   <!-- Project description-->
   <name>DepTrim</name>
@@ -40,7 +40,7 @@
     <developer>
       <id>cesarsotovalero</id>
       <name>César Soto Valero</name>
-      <email>cesarsotovlaero@gmail.com</email>
+      <email>cesarsotovalero@gmail.com</email>
       <organization>Castor Software Research Centre</organization>
       <organizationUrl>https://www.castor.kth.se/</organizationUrl>
     </developer>
@@ -59,7 +59,7 @@
     <!-- Plugin versions -->
     <jacoco.maven.plugin>0.8.8</jacoco.maven.plugin>
     <coveralls.maven.plugin>4.3.0</coveralls.maven.plugin>
-    <surefire.plugin.version>3.0.0-M3</surefire.plugin.version>
+    <surefire.plugin.version>3.0.0-M7</surefire.plugin.version>
     <maven.compiler.plugin>3.10.1</maven.compiler.plugin>
     <sonar.maven.plugin>3.9.1.2184</sonar.maven.plugin>
     <maven.site.plugin>4.0.0-M3</maven.site.plugin>
@@ -67,13 +67,24 @@
     <maven.checkstyle.plugin>3.2.0</maven.checkstyle.plugin>
     <!-- Dependency versions -->
     <lombok.version>1.18.24</lombok.version>
-    <slf4j-api.version>2.0.1</slf4j-api.version>
-    <slf4j-reload4j.version>2.0.1</slf4j-reload4j.version>
+    <slf4j-api.version>2.0.3</slf4j-api.version>
+    <slf4j-reload4j.version>2.0.3</slf4j-reload4j.version>
     <junit5.version>5.9.0</junit5.version>
   </properties>
 
   <!-- List of global dependencies -->
   <dependencies>
+    <!-- Static analysis -->
+    <dependency>
+      <groupId>se.kth.castor</groupId>
+      <artifactId>depclean-core</artifactId>
+      <version>2.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>se.kth.castor</groupId>
+      <artifactId>depclean-maven-plugin</artifactId>
+      <version>2.0.3</version>
+    </dependency>
     <!-- Utils -->
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -92,7 +103,7 @@
       <artifactId>slf4j-reload4j</artifactId>
       <version>${slf4j-reload4j.version}</version>
     </dependency>
-    <!-- Testing -->
+    <!-- Unit tests -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -111,11 +122,128 @@
       <version>${junit5.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>5.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Integration tests -->
+    <!-- see https://khmarbaise.github.io/maven-it-extension/itf-documentation/usersguide/usersguide.html#_grouping_test_cases -->
+    <dependency>
+      <groupId>com.soebes.itf.jupiter.extension</groupId>
+      <artifactId>itf-extension-maven</artifactId>
+      <version>0.11.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.soebes.itf.jupiter.extension</groupId>
+      <artifactId>itf-assertj</artifactId>
+      <version>0.11.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.soebes.itf.jupiter.extension</groupId>
+      <artifactId>itf-jupiter-extension</artifactId>
+      <version>0.11.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.23.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!--Maven tools for plugin construction-->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>3.8.5</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>3.8.5</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <version>3.0-alpha-2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.6.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-dependency-tree</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <!-- Build options -->
   <build>
+    <!-- Integration tests -->
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>false</filtering>
+      </testResource>
+      <testResource>
+        <directory>src/test/resources-its</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
     <plugins>
+      <plugin>
+        <groupId>com.soebes.itf.jupiter.extension</groupId>
+        <artifactId>itf-maven-plugin</artifactId>
+        <version>0.11.0</version>
+        <executions>
+          <execution>
+            <id>installing</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>install</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.0.0-M3</version>
+        <configuration>
+          <includes>
+            <include>**/*IT.java</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!--Fix plugin descriptor-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.6.4</version>
+        <executions>
+          <execution>
+            <id>default-descriptor</id>
+            <phase>process-classes</phase>
+          </execution>
+        </executions>
+      </plugin>
       <!--JaCoCo plugin-->
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -166,7 +294,7 @@
         <artifactId>sonar-maven-plugin</artifactId>
         <version>${sonar.maven.plugin}</version>
       </plugin>
-      <!-- Checkstyle-->
+      <!--Checkstyle-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -187,8 +315,7 @@
               <failsOnError>true</failsOnError>
               <!--  Google style is adopted, https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
               <configLocation>checkstyle.xml</configLocation>
-              <includeTestSourceDirectory>true</includeTestSourceDirectory>
-              <encoding>UTF-8</encoding>
+              <includeTestSourceDirectory>false</includeTestSourceDirectory>
               <consoleOutput>true</consoleOutput>
             </configuration>
             <phase>validate</phase>
@@ -202,7 +329,6 @@
               <failsOnError>true</failsOnError>
               <!--  Google style is adopted, https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
               <configLocation>checkstyle.xml</configLocation>
-              <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
             </configuration>
             <phase>verify</phase>
@@ -247,7 +373,6 @@
       </plugin>
     </plugins>
   </build>
-
 
   <reporting>
     <plugins>
