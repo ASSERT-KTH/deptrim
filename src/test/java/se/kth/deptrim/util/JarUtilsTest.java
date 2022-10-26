@@ -2,11 +2,11 @@ package se.kth.deptrim.util;
 
 import java.io.File;
 import java.io.IOException;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.rules.TemporaryFolder;
 
 class JarUtilsTest {
@@ -14,13 +14,15 @@ class JarUtilsTest {
   JarUtils jarUtils;
   TemporaryFolder temporaryFolder;
   File jarFile;
+  @TempDir
+  File parentFolder;
 
   @BeforeEach
-  @Rule
   void setUp() {
     jarUtils = new JarUtils();
     jarFile = new File("test.jar");
-    temporaryFolder = new TemporaryFolder(new File("src/test/resources"));
+    parentFolder = new File("src/test/resources");
+    temporaryFolder = new TemporaryFolder(parentFolder);
     try {
       temporaryFolder.create();
       temporaryFolder.newFolder("META-INF");
@@ -37,7 +39,6 @@ class JarUtilsTest {
   }
 
   @AfterEach
-  @Rule
   void tearDown() {
     temporaryFolder.delete();
     jarFile.delete();
