@@ -15,13 +15,14 @@ class JarUtilsTest {
   @TempDir
   Path tempDir;
 
-  File jarFile = new File("src/test/resources/test.jar");
+  File jarFile = new File("test.jar");
 
   @BeforeEach
   void setUp() {
     try {
       // add folder to tempDir
       Files.createDirectory(tempDir.resolve("META-INF"));
+      // add file to the older in tempDir
       Path tempFile = Files.createFile(tempDir.resolve("META-INF/Manifest.mf"));
       Files.writeString(tempFile, "Manifest-Version: 1.0\n"
           + "Created-By: 1.7.0_06 (Oracle Corporation)");
