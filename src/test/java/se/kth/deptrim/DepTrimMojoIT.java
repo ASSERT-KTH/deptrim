@@ -21,7 +21,7 @@ public class DepTrimMojoIT {
 
   @MavenTest
   @DisplayName("Test that DepTrim runs in an empty Maven project")
-  void empty_project(MavenExecutionResult result) {
+  void ifProjectIsEmpty_ThenDeptrimShouldNotBreakTheBuild(MavenExecutionResult result) {
     assertThat(result).isSuccessful(); // should pass
   }
 

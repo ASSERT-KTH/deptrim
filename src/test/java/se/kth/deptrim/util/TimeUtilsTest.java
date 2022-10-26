@@ -14,7 +14,7 @@ class TimeUtilsTest {
   }
 
   @Test
-  void ifGettingTheTimeThenTimeIsCorrect() {
+  void ifGettingTheTime_ThenTimeIsCorrect() {
     Assertions.assertEquals("1min 40s", timeUtils.toHumanReadableTime(100000));
   }
 }
