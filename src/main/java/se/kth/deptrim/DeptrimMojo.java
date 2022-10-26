@@ -295,6 +295,15 @@ public class DeptrimMojo extends AbstractMojo {
             + allUsedDependencies.size());
 
     // For each used dependency to specialize, get its unused types (classes)
+    // Does analysis.getDependencyClassesMap().entrySet() contain transitive dependencies? Yes
+    // pom-debloated.xml produces a flattened list of dependencies
+    // we can use <exclusions>...</exclusions> to exclude original transitive dependency
+    // and add specialized transitive as direct dependency in pom-debloated-spl.xml
+    // but will original direct dependency accept this replacement?
+    // how does Maven resolve the case where a transitive dependency is excluded from a parent dependency
+    // and included on its own in the pom?
+    List<String> librariesToSpecialize = Arrays.stream(libraryToSpecialize.split(",")).toList();
+    getLog().info("Number of libraries to specialize: " + librariesToSpecialize.size());
     for (Map.Entry<Dependency, DependencyTypes> entry : analysis.getDependencyClassesMap().entrySet()) {
       if (entry.getKey().getDependencyId().equals(libraryToSpecialize)) {
         getLog().info("Number of classes within " + libraryToSpecialize + ": "
