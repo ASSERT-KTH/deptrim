@@ -10,6 +10,7 @@ import java.util.Set;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.execution.MavenSession;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.model.ClassName;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
@@ -23,6 +24,7 @@ public class Trimmer {
 
   private static final String DIRECTORY_TO_EXTRACT_DEPENDENCIES = "dependency";
   private static final String DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES = "dependency-debloated";
+  private static final String GROUP_ID_OF_SPECIALIZED_JAR = "se.kth.castor.deptrim.spl";
   private DependencyManagerWrapper dependencyManager;
   private Set<String> ignoreScopes;
 
@@ -35,10 +37,11 @@ public class Trimmer {
    * Trim the unused classes from the dependencies specified by the user based on the usage analysis results.
    *
    * @param analysis         The dependency usage analysis results
+   * @param session          The MavenSession being analyzed, to get access to local Maven repository for deployment
    * @param trimDependencies The dependencies to be trimmed, if empty then trims all the dependencies.
    */
   @SneakyThrows
-  public void trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
+  public void trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies, MavenSession session) {
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
@@ -84,14 +87,16 @@ public class Trimmer {
 
             // Install the dependency in the local repository.
             try {
-              MavenInvoker.runCommand(
-                  "mvn deploy:deploy-file -Durl=" + libDeptrimPath
+              String mvnLocalRepoUrl = session.getLocalRepository().getUrl();
+              log.info("Deploying specialized jar to local Maven repository " + mvnLocalRepoUrl);
+              String mavenDeployCommand = "mvn deploy:deploy-file -Durl=" + mvnLocalRepoUrl
                       + " -Dpackaging=jar"
                       + " -Dfile=" + jarFile.getAbsolutePath()
-                      + " -DgroupId=" + key.getGroupId()
+                      + " -DgroupId=" + GROUP_ID_OF_SPECIALIZED_JAR
                       + " -DartifactId=" + key.getDependencyId()
-                      + " -Dversion=" + key.getVersion(),
-                  null);
+                      + " -Dversion=" + key.getVersion();
+              log.info(mavenDeployCommand);
+              MavenInvoker.runCommand(mavenDeployCommand, null);
             } catch (IOException | InterruptedException e) {
               log.error("Error installing the trimmed dependency jar in local repo");
             }
