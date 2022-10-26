@@ -3,6 +3,7 @@ package se.kth.deptrim;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.maven.execution.MavenSession;
 import se.kth.depclean.core.analysis.AnalysisFailureException;
 import se.kth.depclean.core.analysis.DefaultProjectDependencyAnalyzer;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
@@ -22,6 +23,7 @@ public class DepTrimManager {
 
   private static final String SEPARATOR = "-------------------------------------------------------";
   private final DependencyManagerWrapper dependencyManager;
+  private final MavenSession session;
   private final boolean skipDepTrim;
   private final boolean ignoreTests;
   private final Set<String> ignoreScopes;
@@ -68,7 +70,7 @@ public class DepTrimManager {
     // Trimming dependencies.
     getLog().info("STARTING TRIMMING DEPENDENCIES");
     Trimmer trimmer = new Trimmer(dependencyManager, ignoreScopes);
-    trimmer.trimLibClasses(analysis, trimDependencies);
+    trimmer.trimLibClasses(analysis, trimDependencies, session);
     consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Print execution time.
