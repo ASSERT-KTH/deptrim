@@ -71,6 +71,14 @@ public class DepTrimManager {
     getLog().info("STARTING TRIMMING DEPENDENCIES");
     Trimmer trimmer = new Trimmer(dependencyManager, ignoreScopes);
     trimmer.trimLibClasses(analysis, trimDependencies, session);
+
+    // If POMs with specialized jars have to be produced
+    if (createPomTrimmed) {
+      // create pom-debloated.xml
+      dependencyManager.getDebloater(analysis).write();
+      // TODO: produce a pom file for each combination of specialized jars
+    }
+
     consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Print execution time.
