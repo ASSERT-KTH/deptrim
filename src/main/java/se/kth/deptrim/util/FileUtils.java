@@ -1,13 +1,17 @@
 package se.kth.deptrim.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class for handling files.
  */
+@Slf4j
 public class FileUtils {
 
   /**
@@ -22,8 +26,11 @@ public class FileUtils {
         .collect(Collectors.toList());
     int size = toBeDeleted.size();
     toBeDeleted.forEach(t -> {
-      final String path = t.getAbsolutePath();
-      final boolean delete = t.delete();
+      try {
+        Files.delete(t.toPath());
+      } catch (IOException e) {
+       log.error("Error deleting file " + t.getAbsolutePath());
+      }
     });
     return size; // the number of deleted directories.
   }

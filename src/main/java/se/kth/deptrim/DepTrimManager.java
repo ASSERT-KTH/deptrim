@@ -4,7 +4,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.maven.execution.MavenSession;
-import se.kth.depclean.core.analysis.AnalysisFailureException;
 import se.kth.depclean.core.analysis.DefaultProjectDependencyAnalyzer;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
@@ -37,7 +36,7 @@ public class DepTrimManager {
    * Execute the DepTrim manager.
    */
   @SneakyThrows
-  public ProjectDependencyAnalysis execute() throws AnalysisFailureException {
+  public ProjectDependencyAnalysis execute() {
     final long startTime = System.currentTimeMillis();
 
     // Skip DepTrim if the user has specified so.
