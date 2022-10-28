@@ -34,23 +34,47 @@ public class Trimmer {
   }
 
   /**
+   * Get all the dependencies in the project if the trimDependencies flag is not set.
+   *
+   * @param analysis The dependency usage analysis results
+   * @return The set of all dependencies
+   */
+  public Set<String> getAllDependenciesIfTrimDependenciesFlagIsEmpty(ProjectDependencyAnalysis analysis) {
+    Set<String> dependenciesToTrim = new LinkedHashSet<>();
+    analysis.getDependencyClassesMap()
+            .forEach((key, value) -> {
+              String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
+              dependenciesToTrim.add(dependencyCoordinates);
+            });
+    return dependenciesToTrim;
+  }
+
+  /**
    * Trim the unused classes from the dependencies specified by the user based on the usage analysis results.
    *
-   * @param analysis           The dependency usage analysis results
-   * @param mavenLocalRepoUrl  The local Maven repository for deployment of specialized jars
-   * @param trimDependencies   The dependencies to be trimmed, if empty then trims all the dependencies.
+   * @param analysis                 The dependency usage analysis results
+   * @param thisProjectCoordinates   The coordinates of the project being analyzed,
+   *                                 so that deptrim does not throw an error when copying files
+   * @param trimDependencies         The dependencies to be trimmed, if empty then trims all the dependencies
+   * @param mavenLocalRepoUrl        The local Maven repository for deployment of specialized jars
    */
   @SneakyThrows
   public Set<DependencyOriginalAndTrimmed> trimLibClasses(ProjectDependencyAnalysis analysis,
                                                           Set<String> trimDependencies,
+                                                          String thisProjectCoordinates,
                                                           String mavenLocalRepoUrl) {
     Set<DependencyOriginalAndTrimmed> deployedSpecializedDependencies = new LinkedHashSet<>();
+    if (trimDependencies.size() == 0) {
+      log.info("No dependencies specified, trimming all dependencies...");
+      trimDependencies = getAllDependenciesIfTrimDependenciesFlagIsEmpty(analysis);
+    }
+    Set<String> finalTrimDependencies = trimDependencies;
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
           // debloating only the dependencies provided by the user and if the scope is not ignored
-          if (trimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope())) {
+          if (finalTrimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope()) && !dependencyCoordinates.equals(thisProjectCoordinates)) {
             log.info("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
