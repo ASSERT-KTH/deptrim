@@ -71,7 +71,11 @@ public class Trimmer {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
               log.info("Removing file " + file.getAbsolutePath());
-              file.delete();
+              try {
+                Files.delete(file.toPath());
+              } catch (IOException e) {
+                log.error("Error deleting file " + file.getAbsolutePath());
+              }
             }
             // Delete all empty directories in destDir.
             se.kth.deptrim.util.FileUtils fileUtils = new se.kth.deptrim.util.FileUtils();
@@ -105,6 +109,7 @@ public class Trimmer {
               deployedSpecializedDependencies.add(originalAndTrimmedDependency);
             } catch (IOException | InterruptedException e) {
               log.error("Error installing the trimmed dependency jar in local repo");
+              Thread.currentThread().interrupt();
             }
           }
         });

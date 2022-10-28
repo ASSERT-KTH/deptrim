@@ -43,7 +43,7 @@ public class DepTrimManager {
    * Execute the DepTrim manager.
    */
   @SneakyThrows
-  public ProjectDependencyAnalysis execute() throws AnalysisFailureException {
+  public ProjectDependencyAnalysis execute() {
     final long startTime = System.currentTimeMillis();
 
     // Skip DepTrim if the user has specified so.
