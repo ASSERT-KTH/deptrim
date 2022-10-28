@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
-import se.kth.depclean.core.analysis.AnalysisFailureException;
 import se.kth.depclean.core.analysis.DefaultProjectDependencyAnalyzer;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;

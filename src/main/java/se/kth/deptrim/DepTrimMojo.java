@@ -118,7 +118,7 @@ public class DepTrimMojo extends AbstractMojo {
           createResultJson,
           createCallGraphCsv
       ).execute();
-    } catch (AnalysisFailureException e) {
+    } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
   }
