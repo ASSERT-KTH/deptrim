@@ -6,11 +6,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.execution.MavenSession;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.model.ClassName;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
@@ -36,12 +36,15 @@ public class Trimmer {
   /**
    * Trim the unused classes from the dependencies specified by the user based on the usage analysis results.
    *
-   * @param analysis         The dependency usage analysis results
-   * @param session          The MavenSession being analyzed, to get access to local Maven repository for deployment
-   * @param trimDependencies The dependencies to be trimmed, if empty then trims all the dependencies.
+   * @param analysis           The dependency usage analysis results
+   * @param mavenLocalRepoUrl  The local Maven repository for deployment of specialized jars
+   * @param trimDependencies   The dependencies to be trimmed, if empty then trims all the dependencies.
    */
   @SneakyThrows
-  public void trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies, MavenSession session) {
+  public Set<DependencyOriginalAndTrimmed> trimLibClasses(ProjectDependencyAnalysis analysis,
+                                                          Set<String> trimDependencies,
+                                                          String mavenLocalRepoUrl) {
+    Set<DependencyOriginalAndTrimmed> deployedSpecializedDependencies = new LinkedHashSet<>();
     analysis
         .getDependencyClassesMap()
         .forEach((key, value) -> {
@@ -91,9 +94,8 @@ public class Trimmer {
 
             // Install the dependency in the local repository.
             try {
-              String mvnLocalRepoUrl = session.getLocalRepository().getUrl();
-              log.info("Deploying specialized jar to local Maven repository " + mvnLocalRepoUrl);
-              String mavenDeployCommand = "mvn deploy:deploy-file -Durl=" + mvnLocalRepoUrl
+              log.info("Deploying specialized jar to local Maven repository " + mavenLocalRepoUrl);
+              String mavenDeployCommand = "mvn deploy:deploy-file -Durl=" + mavenLocalRepoUrl
                       + " -Dpackaging=jar"
                       + " -Dfile=" + jarFile.getAbsolutePath()
                       + " -DgroupId=" + GROUP_ID_OF_SPECIALIZED_JAR
@@ -101,12 +103,16 @@ public class Trimmer {
                       + " -Dversion=" + key.getVersion();
               log.info(mavenDeployCommand);
               MavenInvoker.runCommand(mavenDeployCommand, null);
+              // If successfully deployed
+              DependencyOriginalAndTrimmed originalAndTrimmedDependency = new DependencyOriginalAndTrimmed(
+                      key.getGroupId(), key.getDependencyId(), key.getVersion(), GROUP_ID_OF_SPECIALIZED_JAR);
+              deployedSpecializedDependencies.add(originalAndTrimmedDependency);
             } catch (IOException | InterruptedException e) {
               log.error("Error installing the trimmed dependency jar in local repo");
               Thread.currentThread().interrupt();
             }
           }
         });
+    return deployedSpecializedDependencies;
   }
-
 }
