@@ -107,6 +107,7 @@ public class DepTrimMojo extends AbstractMojo {
               session,
               dependencyGraphBuilder
           ),
+          project,
           session,
           skipDepTrim,
           ignoreTests,
