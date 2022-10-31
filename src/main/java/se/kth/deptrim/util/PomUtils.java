@@ -2,6 +2,7 @@ package se.kth.deptrim.util;
 
 import com.google.common.collect.Sets;
 import java.io.File;
+import java.time.Instant;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -66,10 +67,10 @@ public class PomUtils {
     NodeList dependencies = document.getDocumentElement().getElementsByTagName("dependency");
 
     String debloatedAndSpecializedPom = debloatedPomPath.replace(".xml", "-spl.xml");
-    StringBuilder pomName = new StringBuilder();
+    // StringBuilder pomName = new StringBuilder();
 
     for (DependencyOriginalAndTrimmed thisDependency : combinationOfOriginalTrimmedDependencies) {
-      pomName.append(pomName).append("-").append(thisDependency.getOriginalDependencyId());
+      // pomName.append(pomName).append("-").append(thisDependency.getOriginalDependencyId());
       for (int i = 0; i < dependencies.getLength(); i++) {
         Element dependencyNode = (Element) dependencies.item(i);
         Node groupIdNode = dependencyNode.getElementsByTagName("groupId").item(0);
@@ -88,7 +89,11 @@ public class PomUtils {
       }
     }
 
-    debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(".xml", pomName + ".xml");
+    // pomName can be very long:
+    // debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(".xml", pomName + ".xml");
+    // So we use timestamp
+    debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(".xml",
+            "-" + Instant.now().toEpochMilli() + ".xml");
     saveUpdatedDomInANewPom(document, debloatedAndSpecializedPom);
     return debloatedAndSpecializedPom;
   }

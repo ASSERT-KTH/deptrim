@@ -70,14 +70,15 @@ public class DepTrimManager {
     final DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
     final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(typesUsageAnalyzer.buildProjectContext(ignoreTests, ignoreDependencies, ignoreScopes));
     ConsolePrinter consolePrinter = new ConsolePrinter();
-    consolePrinter.printDependencyUsageAnalysis(analysis);
+    // consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Trimming dependencies.
     getLog().info("STARTING TRIMMING DEPENDENCIES");
     Trimmer trimmer = new Trimmer(dependencyManager, ignoreScopes);
     String mavenLocalRepoUrl = session.getLocalRepository().getUrl();
+    String thisProjectCoordinates = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
     Set<DependencyOriginalAndTrimmed> originalAndTrimmedDependencies =
-            trimmer.trimLibClasses(analysis, trimDependencies, mavenLocalRepoUrl);
+            trimmer.trimLibClasses(analysis, trimDependencies, thisProjectCoordinates, mavenLocalRepoUrl);
 
     // If POMs with specialized jars have to be produced
     if (createPomTrimmed) {
@@ -90,7 +91,7 @@ public class DepTrimManager {
       pomUtils.producePoms();
     }
 
-    consolePrinter.printDependencyUsageAnalysis(analysis);
+    // consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Print execution time.
     final long stopTime = System.currentTimeMillis();
