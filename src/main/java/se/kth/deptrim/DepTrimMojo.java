@@ -99,22 +99,27 @@ public class DepTrimMojo extends AbstractMojo {
   @SneakyThrows
   @Override
   public final void execute() {
-    new DepTrimManager(
-        new MavenDependencyManager(
-            getLog(),
-            project,
-            session,
-            dependencyGraphBuilder
-        ),
-        session,
-        skipDepTrim,
-        ignoreTests,
-        ignoreScopes,
-        ignoreDependencies,
-        trimDependencies,
-        createPomTrimmed,
-        createResultJson,
-        createCallGraphCsv
-    ).execute();
+    try {
+      new DepTrimManager(
+          new MavenDependencyManager(
+              getLog(),
+              project,
+              session,
+              dependencyGraphBuilder
+          ),
+          project,
+          session,
+          skipDepTrim,
+          ignoreTests,
+          ignoreScopes,
+          ignoreDependencies,
+          trimDependencies,
+          createPomTrimmed,
+          createResultJson,
+          createCallGraphCsv
+      ).execute();
+    } catch (Exception e) {
+      throw new MojoExecutionException(e.getMessage(), e);
+    }
   }
 }

@@ -1,17 +1,21 @@
 package se.kth.deptrim;
 
+import java.io.File;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.project.MavenProject;
 import se.kth.depclean.core.analysis.DefaultProjectDependencyAnalyzer;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 import se.kth.depclean.core.wrapper.LogWrapper;
+import se.kth.deptrim.core.DependencyOriginalAndTrimmed;
 import se.kth.deptrim.core.Trimmer;
 import se.kth.deptrim.core.TypesExtractor;
 import se.kth.deptrim.core.TypesUsageAnalyzer;
 import se.kth.deptrim.io.ConsolePrinter;
+import se.kth.deptrim.util.PomUtils;
 import se.kth.deptrim.util.TimeUtils;
 
 /**
@@ -21,7 +25,9 @@ import se.kth.deptrim.util.TimeUtils;
 public class DepTrimManager {
 
   private static final String SEPARATOR = "-------------------------------------------------------";
+  private static final String DEBLOATED_POM_NAME = "pom-debloated.xml";
   private final DependencyManagerWrapper dependencyManager;
+  private final MavenProject project;
   private final MavenSession session;
   private final boolean skipDepTrim;
   private final boolean ignoreTests;
@@ -69,7 +75,21 @@ public class DepTrimManager {
     // Trimming dependencies.
     getLog().info("STARTING TRIMMING DEPENDENCIES");
     Trimmer trimmer = new Trimmer(dependencyManager, ignoreScopes);
-    trimmer.trimLibClasses(analysis, trimDependencies, session);
+    String mavenLocalRepoUrl = session.getLocalRepository().getUrl();
+    Set<DependencyOriginalAndTrimmed> originalAndTrimmedDependencies =
+            trimmer.trimLibClasses(analysis, trimDependencies, mavenLocalRepoUrl);
+
+    // If POMs with specialized jars have to be produced
+    if (createPomTrimmed) {
+      // create pom-debloated.xml
+      dependencyManager.getDebloater(analysis).write();
+      String debloatedPomPath = project.getBasedir().getAbsolutePath()
+              + File.separator + DEBLOATED_POM_NAME;
+      // create pom-debloated-spl-*.xml
+      PomUtils pomUtils = new PomUtils(originalAndTrimmedDependencies, debloatedPomPath);
+      pomUtils.producePoms();
+    }
+
     consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Print execution time.
