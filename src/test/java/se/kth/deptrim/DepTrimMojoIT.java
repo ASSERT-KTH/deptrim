@@ -5,6 +5,13 @@ import static com.soebes.itf.extension.assertj.MavenITAssertions.assertThat;
 import com.soebes.itf.jupiter.extension.MavenJupiterExtension;
 import com.soebes.itf.jupiter.extension.MavenTest;
 import com.soebes.itf.jupiter.maven.MavenExecutionResult;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.nio.file.Files;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.log4j.Logger;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 
 /**
@@ -21,21 +28,33 @@ public class DepTrimMojoIT {
   @MavenTest
   @DisplayName("Test that DepTrim runs in an empty Maven project")
   void empty_project(MavenExecutionResult result) {
+    System.out.println("Testing that DepTrim runs in an empty Maven project");
     assertThat(result).isSuccessful(); // should pass
   }
 
-  // @TODO fix this test later
-  //@MavenTest
-  //@DisplayName("Test that DepTrim runs in an empty Maven project")
-  //void trim_one_dependency(MavenExecutionResult result) {
-  //  assertThat(result)
-  //      .isSuccessful()
-  //      .out()
-  //      .plain().contains(
-  //          "STARTING TRIMMING DEPENDENCIES",
-  //          "Trimming dependency com.google.guava:guava:17.0"
-  //      );
-  //}
+  @MavenTest
+  @DisplayName("Test that DepTrim creates a trimmed poms")
+  void trimmed_pom_should_be_correct(MavenExecutionResult result) {
+    System.out.println("Testing that DepTrim pushes specialized dependencies to the local repository");
+    String LocalRepositoryAbsolutePath = result.getMavenCacheResult().getStdout().toFile().getAbsolutePath();
+    String pathToSpecializedCommonsIO = "/se/kth/castor/deptrim/spl/commons-io/2.11.0/commons-io-2.11.0.jar";
+    String pathToSpecializedGuava = "/se/kth/castor/deptrim/spl/guava/17.0/guava-17.0.jar";
+    Assertions.assertTrue(Files.exists(new File(LocalRepositoryAbsolutePath + pathToSpecializedCommonsIO).toPath()));
+    Assertions.assertTrue(Files.exists(new File(LocalRepositoryAbsolutePath + pathToSpecializedGuava).toPath()));
+
+    System.out.println("Testing that DepTrim pushes specialized dependencies to /libs-deptrim");
+    String pathToProject = result.getMavenProjectResult().getTargetBaseDirectory().getAbsolutePath();
+    String pathToSpecializedCommonsIOInProject = "/project/libs-deptrim/commons-io-2.11.0.jar";
+    String pathToSpecializedGuavaInProject = "/project/libs-deptrim/commons-io-2.11.0.jar";
+    Assertions.assertTrue(Files.exists(new File(pathToProject + pathToSpecializedCommonsIOInProject).toPath()));
+    Assertions.assertTrue(Files.exists(new File(pathToProject + pathToSpecializedGuavaInProject).toPath()));
+
+    System.out.println("Testing that DepTrim produces four specialized pom files in the root of the project");
+    File pathToProjectDirectory = new File(result.getMavenProjectResult().getTargetBaseDirectory().getAbsolutePath() + "/project");
+    File[] specializedPomFiles = pathToProjectDirectory.listFiles((dirFiles, filename) -> filename.startsWith("pom-debloated-spl-") && filename.endsWith(".xml"));
+    assert specializedPomFiles != null;
+    Assertions.assertEquals(4, specializedPomFiles.length);
+  }
 
 }
 
