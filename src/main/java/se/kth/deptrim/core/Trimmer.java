@@ -77,6 +77,10 @@ public class Trimmer {
           if (finalTrimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope()) && !dependencyCoordinates.equals(thisProjectCoordinates)) {
             log.info("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
+            if (value.getUsedTypes().size() == 0) {
+              log.info("Skipping specialization for bloated dependency " + dependencyCoordinates);
+              return;
+            }
             unusedTypes.removeAll(value.getUsedTypes());
             log.info(key.getFile().getName() + " -> " + unusedTypes);
             String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
