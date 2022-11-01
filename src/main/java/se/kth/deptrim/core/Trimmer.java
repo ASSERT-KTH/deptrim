@@ -74,7 +74,10 @@ public class Trimmer {
         .forEach((key, value) -> {
           String dependencyCoordinates = key.getGroupId() + ":" + key.getDependencyId() + ":" + key.getVersion();
           // debloating only the dependencies provided by the user and if the scope is not ignored
-          if (finalTrimDependencies.contains(dependencyCoordinates) && !ignoreScopes.contains(key.getScope()) && !dependencyCoordinates.equals(thisProjectCoordinates)) {
+          if (!value.getUsedTypes().isEmpty()
+                  && finalTrimDependencies.contains(dependencyCoordinates)
+                  && !ignoreScopes.contains(key.getScope())
+                  && !dependencyCoordinates.equals(thisProjectCoordinates)) {
             log.info("Trimming dependency " + dependencyCoordinates);
             Set<ClassName> unusedTypes = new HashSet<>(value.getAllTypes());
             unusedTypes.removeAll(value.getUsedTypes());
