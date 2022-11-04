@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import se.kth.depclean.core.model.ClassName;
 import se.kth.depclean.core.model.Dependency;
 import se.kth.depclean.core.model.ProjectContext;
@@ -13,6 +14,7 @@ import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 /**
  * A class that analyses the types used by the project in each dependency.
  */
+@Slf4j
 public class TypesUsageAnalyzer {
 
   private DependencyManagerWrapper dependencyManager;
@@ -32,7 +34,7 @@ public class TypesUsageAnalyzer {
    * @return the {@link ProjectContext} with the types used by the project in each dependency.
    */
   public ProjectContext buildProjectContext(Set<String> ignoreDependencies, Set<String> ignoreScopes) {
-    // Consider are used all the classes declared in Maven processors
+    // Consider as used all the classes declared in Maven processors
     Set<ClassName> allUsedClasses = new HashSet<>();
     Set<ClassName> usedClassesFromProcessors = dependencyManager
         .collectUsedClassesFromProcessors().stream()
@@ -49,6 +51,14 @@ public class TypesUsageAnalyzer {
 
     allUsedClasses.addAll(usedClassesFromProcessors);
     allUsedClasses.addAll(usedClassesFromSource);
+
+    // Ignore the dependencies with the ignored scopes
+    for (Dependency dependency : dependencyManager.dependencyGraph().allDependencies()) {
+      if (ignoreScopes.contains(dependency.getScope())) {
+        log.info("Ignoring dependency " + dependency + " because of scope " + dependency.getScope());
+        ignoreDependencies.add(dependency.toString());
+      }
+    }
 
     return new ProjectContext(
         dependencyManager.dependencyGraph(),

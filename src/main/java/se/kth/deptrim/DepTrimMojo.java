@@ -110,13 +110,10 @@ public class DepTrimMojo extends AbstractMojo {
           project,
           session,
           skipDepTrim,
-          ignoreTests,
           ignoreScopes,
           ignoreDependencies,
           trimDependencies,
-          createPomTrimmed,
-          createResultJson,
-          createCallGraphCsv
+          createPomTrimmed
       ).execute();
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);

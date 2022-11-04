@@ -8,13 +8,13 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import se.kth.depclean.core.analysis.DefaultProjectDependencyAnalyzer;
 import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
+import se.kth.depclean.core.model.ProjectContext;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 import se.kth.depclean.core.wrapper.LogWrapper;
 import se.kth.deptrim.core.TrimmedDependency;
 import se.kth.deptrim.core.Trimmer;
 import se.kth.deptrim.core.TypesExtractor;
 import se.kth.deptrim.core.TypesUsageAnalyzer;
-import se.kth.deptrim.io.ConsolePrinter;
 import se.kth.deptrim.util.PomUtils;
 import se.kth.deptrim.util.TimeUtils;
 
@@ -30,13 +30,10 @@ public class DepTrimManager {
   private final MavenProject project;
   private final MavenSession session;
   private final boolean skipDepTrim;
-  private final boolean ignoreTests;
   private final Set<String> ignoreScopes;
   private final Set<String> ignoreDependencies;
   private final Set<String> trimDependencies;
   private final boolean createPomTrimmed;
-  private final boolean createResultJson;
-  private final boolean createCallGraphCsv;
 
   /**
    * Execute the DepTrim manager.
@@ -56,25 +53,33 @@ public class DepTrimManager {
       return null;
     }
 
-    getLog().info(SEPARATOR + "\n" + "DEPTRIM IS ANALYZING DEPENDENCIES");
+    getLog().info(SEPARATOR);
+    getLog().info("DEPTRIM IS ANALYZING DEPENDENCIES");
+    getLog().info(SEPARATOR);
     // Extract all the dependencies in target/dependencies.
     TypesExtractor typesExtractor = new TypesExtractor(dependencyManager);
     typesExtractor.extractAllTypes();
     // Analyze the dependencies extracted.
+    DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
     TypesUsageAnalyzer typesUsageAnalyzer = new TypesUsageAnalyzer(dependencyManager);
-    final DefaultProjectDependencyAnalyzer projectDependencyAnalyzer = new DefaultProjectDependencyAnalyzer();
-    final ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(typesUsageAnalyzer.buildProjectContext(ignoreDependencies, ignoreScopes));
-    ConsolePrinter consolePrinter = new ConsolePrinter();
-    consolePrinter.printDependencyUsageAnalysis(analysis);
+    ProjectContext projectContext = typesUsageAnalyzer.buildProjectContext(ignoreDependencies, ignoreScopes);
+    ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(projectContext);
+    //ConsolePrinter consolePrinter = new ConsolePrinter();
+    //consolePrinter.printDependencyUsageAnalysis(analysis);
 
     // Trimming dependencies.
-    getLog().info(SEPARATOR + "\n" + "DEPTRIM IS TRIMMING DEPENDENCIES");
+    getLog().info(SEPARATOR);
+    getLog().info("DEPTRIM IS TRIMMING DEPENDENCIES");
+    getLog().info(SEPARATOR);
     String projectCoordinates = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
     String mavenLocalRepoUrl = session.getLocalRepository().getUrl();
     Trimmer trimmer = new Trimmer(projectCoordinates, mavenLocalRepoUrl, dependencyManager, ignoreScopes);
-    Set<TrimmedDependency> originalAndTrimmedDependencies = trimmer.trimLibClasses(analysis, trimDependencies);
+    Set<TrimmedDependency> trimmedDependencies = trimmer.trimLibClasses(analysis, trimDependencies);
 
-    getLog().info(SEPARATOR + "\n" + "DEPTRIM IS CREATING SPECIALIZED POMS");
+    getLog().info(SEPARATOR);
+    getLog().info("DEPTRIM IS CREATING SPECIALIZED POMS");
+    getLog().info(SEPARATOR);
+
     if (createPomTrimmed) {
       // create pom-debloated.xml
       dependencyManager.getDebloater(analysis).write();
@@ -82,7 +87,7 @@ public class DepTrimManager {
           + File.separator
           + DEBLOATED_POM_NAME;
       // create pom-debloated-spl-*.xml
-      PomUtils pomUtils = new PomUtils(originalAndTrimmedDependencies, debloatedPomPath);
+      PomUtils pomUtils = new PomUtils(trimmedDependencies, debloatedPomPath);
       pomUtils.producePoms();
     }
 

@@ -77,9 +77,10 @@ public class Trimmer {
   public Set<TrimmedDependency> trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
     Set<TrimmedDependency> deployedSpecializedDependencies = new LinkedHashSet<>();
     if (trimDependencies.isEmpty()) {
-      log.info("No dependencies specified, trimming all dependencies...");
+      log.info("No dependencies specified, trimming all dependencies except the ignored dependencies.");
       trimDependencies = getAllDependenciesIfTrimDependenciesFlagIsEmpty(analysis, ignoreScopes);
     }
+
     Set<String> finalTrimDependencies = trimDependencies;
     analysis
         .getDependencyClassesMap()
@@ -106,10 +107,10 @@ public class Trimmer {
               log.error("Error copying files from " + srcDir + " to " + destDir);
             }
             // Remove files in destDir.
+            log.info("Removing unused types: " + unusedTypes.size());
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
-              log.info("Removing unused file " + file.getPath());
               try {
                 Files.delete(file.toPath());
               } catch (IOException e) {

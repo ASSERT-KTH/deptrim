@@ -40,7 +40,7 @@ public class PomUtils {
     log.info("Number of combinations: " + allCombinationsOfTrimmedDependencies.size());
     int combinationNumber = 1;
     for (Set<TrimmedDependency> oneCombinationOfTrimmedDependencies : allCombinationsOfTrimmedDependencies) {
-      log.info("Producing POM for combination");
+      // Producing POM for combination.
       oneCombinationOfTrimmedDependencies.forEach(c -> log.info(c.toString()));
       try {
         String generatedPomFile = createSpecializedPomFromDebloatedPom(oneCombinationOfTrimmedDependencies, combinationNumber);
