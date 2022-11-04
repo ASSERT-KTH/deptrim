@@ -85,7 +85,7 @@ public class Trimmer {
             String dependencyDirName = key.getFile().getName().substring(0, key.getFile().getName().length() - 4);
             File srcDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_EXTRACT_DEPENDENCIES + File.separator + dependencyDirName).toFile();
             File destDir = dependencyManager.getBuildDirectory().resolve(DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES + File.separator + dependencyDirName).toFile();
-            log.info("copying from files from " + srcDir.getAbsolutePath() + " to " + destDir.getAbsolutePath());
+            log.info("Copying files from " + srcDir.getPath() + " to " + destDir.getPath());
 
             // Copy all files from srcDir to destDir
             try {
@@ -97,11 +97,11 @@ public class Trimmer {
             for (ClassName className : unusedTypes) {
               String fileName = className.toString().replace(".", File.separator) + ".class";
               File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
-              log.info("Removing file " + file.getAbsolutePath());
+              log.info("Removing unused file " + file.getPath());
               try {
                 Files.delete(file.toPath());
               } catch (IOException e) {
-                log.error("Error deleting file " + file.getAbsolutePath());
+                log.error("Error deleting file " + file.getPath());
               }
             }
             // Delete all empty directories in destDir.

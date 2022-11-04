@@ -61,7 +61,6 @@
             </goals>
             <configuration>
                 <createPomTrimmed>true</createPomTrimmed>
-                <ignoreScopes>test,provided,import,runtime</ignoreScopes>
             </configuration>
           </execution>
         </executions>

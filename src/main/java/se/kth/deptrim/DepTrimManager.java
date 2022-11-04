@@ -60,6 +60,8 @@ public class DepTrimManager {
       return null;
     }
 
+
+
     // Extract all the dependencies in target/dependencies.
     TypesExtractor typesExtractor = new TypesExtractor(dependencyManager);
     typesExtractor.extractAllTypes();
@@ -78,14 +80,15 @@ public class DepTrimManager {
     String mavenLocalRepoUrl = session.getLocalRepository().getUrl();
     String thisProjectCoordinates = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
     Set<DependencyOriginalAndTrimmed> originalAndTrimmedDependencies =
-            trimmer.trimLibClasses(analysis, trimDependencies, thisProjectCoordinates, mavenLocalRepoUrl);
+        trimmer.trimLibClasses(analysis, trimDependencies, thisProjectCoordinates, mavenLocalRepoUrl);
 
     // If POMs with specialized jars have to be produced
     if (createPomTrimmed) {
       // create pom-debloated.xml
       dependencyManager.getDebloater(analysis).write();
       String debloatedPomPath = project.getBasedir().getAbsolutePath()
-              + File.separator + DEBLOATED_POM_NAME;
+          + File.separator
+          + DEBLOATED_POM_NAME;
       // create pom-debloated-spl-*.xml
       PomUtils pomUtils = new PomUtils(originalAndTrimmedDependencies, debloatedPomPath);
       pomUtils.producePoms();
