@@ -1,5 +1,3 @@
-package org;
-
 import org.apache.commons.codec.Charsets;
 
 public class UseCommonsCodec {
