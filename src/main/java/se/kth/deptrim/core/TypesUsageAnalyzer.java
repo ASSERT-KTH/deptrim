@@ -31,10 +31,7 @@ public class TypesUsageAnalyzer {
    *
    * @return the {@link ProjectContext} with the types used by the project in each dependency.
    */
-  public ProjectContext buildProjectContext(boolean ignoreTests, Set<String> ignoreDependencies, Set<String> ignoreScopes) {
-    if (ignoreTests) {
-      ignoreScopes.add("test");
-    }
+  public ProjectContext buildProjectContext(Set<String> ignoreDependencies, Set<String> ignoreScopes) {
     // Consider are used all the classes declared in Maven processors
     Set<ClassName> allUsedClasses = new HashSet<>();
     Set<ClassName> usedClassesFromProcessors = dependencyManager
