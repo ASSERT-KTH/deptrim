@@ -1,9 +1,13 @@
 import com.google.common.collect.ImmutableMap;
+import org.apache.maven.api.xml.Dom;
 import java.util.Map;
 
 public class Main {
 
   public static void main(String[] args) {
+
+    Dom dom;
+
     Map<String, Integer> salary = ImmutableMap.<String, Integer>builder()
         .put("John", 1000)
         .put("Jane", 1500)

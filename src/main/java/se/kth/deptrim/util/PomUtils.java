@@ -36,15 +36,15 @@ public class PomUtils {
    */
   public void producePoms() {
     Set<Set<TrimmedDependency>> allCombinationsOfTrimmedDependencies = Sets.powerSet(trimmedDependencies);
-    log.info("Power set of trimmed dependencies: " + allCombinationsOfTrimmedDependencies);
-    log.info("Number of combinations: " + allCombinationsOfTrimmedDependencies.size());
+    log.info("Number of trimmed dependencies: " + trimmedDependencies.size());
+    log.info("Number of specialized poms: " + allCombinationsOfTrimmedDependencies.size());
     int combinationNumber = 1;
     for (Set<TrimmedDependency> oneCombinationOfTrimmedDependencies : allCombinationsOfTrimmedDependencies) {
       // Producing POM for combination.
-      oneCombinationOfTrimmedDependencies.forEach(c -> log.info(c.toString()));
+      // oneCombinationOfTrimmedDependencies.forEach(c -> log.info(c.toString()));
       try {
         String generatedPomFile = createSpecializedPomFromDebloatedPom(oneCombinationOfTrimmedDependencies, combinationNumber);
-        log.info("Produced " + generatedPomFile);
+        log.info("Produced " + new File(generatedPomFile).getName());
         combinationNumber++;
       } catch (Exception e) {
         log.error("Error producing specialized POM");
@@ -77,8 +77,8 @@ public class PomUtils {
         if (groupIdNode.getTextContent().equals(thisDependency.getOriginalGroupId())
             && artifactIdNode.getTextContent().equals(thisDependency.getOriginalDependencyId())
         ) {
-          log.info("Found original dependency in debloated POM");
-          log.info("Replacing with specialized dependency");
+          // Found original dependency in debloated POM.
+          // Replacing with specialized dependency.
           Node versionNode = dependencyNode.getElementsByTagName("version").item(0);
           groupIdNode.setTextContent(thisDependency.getTrimmedGroupId());
           artifactIdNode.setTextContent(thisDependency.getTrimmedDependencyId());
