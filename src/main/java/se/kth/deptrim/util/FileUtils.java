@@ -22,8 +22,7 @@ public class FileUtils {
   public int deleteEmptyDirectories(File directory) {
     List<File> toBeDeleted = Arrays.stream(directory.listFiles()).sorted()
         .filter(File::isDirectory)
-        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f))
-        .collect(Collectors.toList());
+        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f)).toList();
     int size = toBeDeleted.size();
     toBeDeleted.forEach(t -> {
       try {
