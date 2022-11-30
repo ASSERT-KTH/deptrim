@@ -65,6 +65,7 @@ public class PomUtils {
     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
     Document document = documentBuilder.parse(new File(debloatedPomPath));
     document.getDocumentElement().normalize();
+    int numberOfTrimmedDependencies = oneCombinationOfTrimmedDependencies.size();
     NodeList dependencies = document.getDocumentElement().getElementsByTagName("dependency");
     String debloatedAndSpecializedPom = debloatedPomPath.replace(".xml", "-spl.xml");
     for (TrimmedDependency thisDependency : oneCombinationOfTrimmedDependencies) {
@@ -86,7 +87,10 @@ public class PomUtils {
         }
       }
     }
-    debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(".xml", "-" + combinationNumber + ".xml");
+    debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(
+        ".xml",
+        "-" + combinationNumber + "_" + numberOfTrimmedDependencies + "_" + trimmedDependencies.size() + ".xml"
+    );
     saveUpdatedDomInANewPom(document, debloatedAndSpecializedPom);
     return debloatedAndSpecializedPom;
   }
