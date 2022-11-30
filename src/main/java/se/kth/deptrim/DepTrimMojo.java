@@ -13,7 +13,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
-import se.kth.depclean.core.analysis.AnalysisFailureException;
 import se.kth.depclean.wrapper.MavenDependencyManager;
 
 /**
@@ -50,6 +49,11 @@ public class DepTrimMojo extends AbstractMojo {
    */
   @Parameter(property = "createPomTrimmed", defaultValue = "false")
   private boolean createPomTrimmed;
+  /**
+   * If this is true, DepTrim creates all the combinations of the trimmed poms in root of the project.
+   */
+  @Parameter(property = "createAllPomsTrimmed", defaultValue = "false")
+  private boolean createAllPomsTrimmed;
 
   /**
    * If this is true, DepTrim creates a JSON file with the result of the analysis. The file is called "trimming-result.json" and it is located in /target.
@@ -113,7 +117,8 @@ public class DepTrimMojo extends AbstractMojo {
           ignoreScopes,
           ignoreDependencies,
           trimDependencies,
-          createPomTrimmed
+          createPomTrimmed,
+          createAllPomsTrimmed
       ).execute();
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);

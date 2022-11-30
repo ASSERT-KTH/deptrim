@@ -34,6 +34,7 @@ public class DepTrimManager {
   private final Set<String> ignoreDependencies;
   private final Set<String> trimDependencies;
   private final boolean createPomTrimmed;
+  private final boolean createAllPomsTrimmed;
 
   /**
    * Execute the DepTrim manager.
@@ -75,19 +76,19 @@ public class DepTrimManager {
     String mavenLocalRepoUrl = session.getLocalRepository().getUrl();
     Trimmer trimmer = new Trimmer(projectCoordinates, mavenLocalRepoUrl, dependencyManager, ignoreScopes);
     Set<TrimmedDependency> trimmedDependencies = trimmer.trimLibClasses(analysis, trimDependencies);
-
+    getLog().info("Number of trimmed dependencies: " + trimmedDependencies.size());
     getLog().info(SEPARATOR);
     getLog().info("DEPTRIM IS CREATING SPECIALIZED POMS");
     getLog().info(SEPARATOR);
 
-    if (createPomTrimmed) {
+    if (createPomTrimmed || createAllPomsTrimmed) {
       // create pom-debloated.xml
       dependencyManager.getDebloater(analysis).write();
       String debloatedPomPath = project.getBasedir().getAbsolutePath()
           + File.separator
           + DEBLOATED_POM_NAME;
       // create pom-debloated-spl-*.xml
-      PomUtils pomUtils = new PomUtils(trimmedDependencies, debloatedPomPath);
+      PomUtils pomUtils = new PomUtils(trimmedDependencies, debloatedPomPath, createPomTrimmed, createAllPomsTrimmed);
       pomUtils.producePoms();
     }
 
