@@ -26,17 +26,46 @@ public class PomUtils {
   Set<TrimmedDependency> trimmedDependencies;
   String debloatedPomPath;
 
-  public PomUtils(Set<TrimmedDependency> trimmedDependencies, String debloatedPomPath) {
+  boolean createPomTrimmed;
+  boolean createAllPomsTrimmed;
+
+  /**
+   * Constructor.
+   *
+   * @param trimmedDependencies  The set of trimmed dependencies.
+   * @param debloatedPomPath     The path to the debloated pom.xml file.
+   * @param createAllPomsTrimmed Whether to create all pom.xml files trimmed.
+   */
+  public PomUtils(Set<TrimmedDependency> trimmedDependencies, String debloatedPomPath, boolean createdPomTrimmed, boolean createAllPomsTrimmed) {
     this.trimmedDependencies = trimmedDependencies;
     this.debloatedPomPath = debloatedPomPath;
+    this.createPomTrimmed = createdPomTrimmed;
+    this.createAllPomsTrimmed = createAllPomsTrimmed;
   }
 
   /**
    * This method produces a new pom file for each combination of trimmed dependencies.
    */
   public void producePoms() {
+    if (createAllPomsTrimmed) {
+      produceAllCombinationsOfPomsTrimmed();
+    }
+    if (createPomTrimmed) {
+      createSinglePomTrimmed();
+    }
+  }
+
+  private void createSinglePomTrimmed() {
+    try {
+      String generatedPomFile = createSpecializedPomFromDebloatedPom(trimmedDependencies, 1);
+      log.info("Produced " + new File(generatedPomFile).getName());
+    } catch (Exception e) {
+      log.error("Error producing specialized POM");
+    }
+  }
+
+  private void produceAllCombinationsOfPomsTrimmed() {
     Set<Set<TrimmedDependency>> allCombinationsOfTrimmedDependencies = Sets.powerSet(trimmedDependencies);
-    log.info("Number of trimmed dependencies: " + trimmedDependencies.size());
     log.info("Number of specialized poms: " + allCombinationsOfTrimmedDependencies.size());
     int combinationNumber = 1;
     for (Set<TrimmedDependency> oneCombinationOfTrimmedDependencies : allCombinationsOfTrimmedDependencies) {
@@ -87,10 +116,16 @@ public class PomUtils {
         }
       }
     }
-    debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(
-        ".xml",
-        "-" + combinationNumber + "_" + numberOfTrimmedDependencies + "_" + trimmedDependencies.size() + ".xml"
-    );
+    if (createPomTrimmed) {
+      debloatedAndSpecializedPom = debloatedPomPath.replace(".xml", "-spl.xml");
+    }
+    if (createAllPomsTrimmed) {
+      debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(
+          ".xml",
+          "-" + combinationNumber + "_" + numberOfTrimmedDependencies + "_" + trimmedDependencies.size() + ".xml"
+      );
+    }
+
     saveUpdatedDomInANewPom(document, debloatedAndSpecializedPom);
     return debloatedAndSpecializedPom;
   }

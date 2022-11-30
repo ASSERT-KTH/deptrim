@@ -37,7 +37,7 @@ public class DepTrimMojoIT {
 
   @MavenTest
   @DisplayName("Test that DepTrim creates a trimmed poms")
-  void trimmed_pom_should_be_correct(MavenExecutionResult result) {
+  void trimmed_poms_should_be_correct(MavenExecutionResult result) {
     System.out.println("Testing that DepTrim pushes specialized dependencies to the local repository.");
     String LocalRepositoryAbsolutePath = result.getMavenCacheResult().getStdout().toFile().getAbsolutePath();
     String pathToSpecializedCommonsIO = "/se/kth/castor/deptrim/spl/commons-io/2.11.0/commons-io-2.11.0.jar";
