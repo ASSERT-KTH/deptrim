@@ -17,7 +17,8 @@
 
 DepTrim is a Maven plugin to automatically specialize and diversify the dependencies of a Maven project through software debloating.
 The objective is hardening the [software supply chain](https://www.cesarsotovalero.net/blog/the-software-supply-chain.html) of a project by creating dependencies that only contain the types necessary to build the project.
-DepTrim can also create different variants of the dependencies in the dependency tree of a project.
+After running DepTrim, a directory name `libs-trimmed` is created in the root of the project, which contains the specialized variantes of all the dependencies necessary to build the project.
+DepTrim can also create specialized `pom.xml` files the project, pointing to the specialized versions of the dependencies in the local Maven repository.
 It can be executed as a Maven goal through the command line or integrated directly into the Maven build lifecycle (CI/CD).
 DepTrim does not modify the original source code of the project nor its original `pom.xml`.
 
