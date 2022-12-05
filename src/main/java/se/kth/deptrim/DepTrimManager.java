@@ -11,10 +11,11 @@ import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.model.ProjectContext;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 import se.kth.depclean.core.wrapper.LogWrapper;
-import se.kth.deptrim.core.TrimmedDependency;
-import se.kth.deptrim.core.Trimmer;
+import se.kth.deptrim.core.SpecializedDependency;
+import se.kth.deptrim.core.Specializer;
 import se.kth.deptrim.core.TypesExtractor;
 import se.kth.deptrim.core.TypesUsageAnalyzer;
+import se.kth.deptrim.io.ConsolePrinter;
 import se.kth.deptrim.util.PomUtils;
 import se.kth.deptrim.util.TimeUtils;
 
@@ -29,12 +30,13 @@ public class DepTrimManager {
   private final DependencyManagerWrapper dependencyManager;
   private final MavenProject project;
   private final MavenSession session;
+  private final boolean verboseMode;
   private final boolean skipDepTrim;
   private final Set<String> ignoreScopes;
   private final Set<String> ignoreDependencies;
-  private final Set<String> trimDependencies;
-  private final boolean createPomTrimmed;
-  private final boolean createAllPomsTrimmed;
+  private final Set<String> specializeDependencies;
+  private final boolean createPomSpecialized;
+  private final boolean createAllPomSpecialized;
 
   /**
    * Execute the DepTrim manager.
@@ -57,7 +59,7 @@ public class DepTrimManager {
     getLog().info(SEPARATOR);
     getLog().info("DEPTRIM IS ANALYZING DEPENDENCIES");
     getLog().info(SEPARATOR);
-    // Extract all the dependencies in target/dependencies.
+    // Extract all the dependencies in target/dependencies/.
     TypesExtractor typesExtractor = new TypesExtractor(dependencyManager);
     typesExtractor.extractAllTypes();
     // Analyze the dependencies extracted.
@@ -65,31 +67,34 @@ public class DepTrimManager {
     TypesUsageAnalyzer typesUsageAnalyzer = new TypesUsageAnalyzer(dependencyManager);
     ProjectContext projectContext = typesUsageAnalyzer.buildProjectContext(ignoreDependencies, ignoreScopes);
     ProjectDependencyAnalysis analysis = projectDependencyAnalyzer.analyze(projectContext);
-    //ConsolePrinter consolePrinter = new ConsolePrinter();
-    //consolePrinter.printDependencyUsageAnalysis(analysis);
 
-    // Trimming dependencies.
+    if (verboseMode) {
+      ConsolePrinter consolePrinter = new ConsolePrinter();
+      consolePrinter.printDependencyUsageAnalysis(analysis);
+    }
+
+    // Specializing dependencies.
     getLog().info(SEPARATOR);
-    getLog().info("DEPTRIM IS TRIMMING DEPENDENCIES");
+    getLog().info("DEPTRIM IS SPECIALIZING DEPENDENCIES");
     getLog().info(SEPARATOR);
     String projectCoordinates = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
     String mavenLocalRepoUrl = session.getLocalRepository().getUrl();
-    Trimmer trimmer = new Trimmer(projectCoordinates, mavenLocalRepoUrl, dependencyManager, ignoreScopes);
-    Set<TrimmedDependency> trimmedDependencies = trimmer.trimLibClasses(analysis, trimDependencies);
-    getLog().info("Number of trimmed dependencies: " + trimmedDependencies.size());
+    Specializer specializer = new Specializer(projectCoordinates, mavenLocalRepoUrl, dependencyManager, ignoreScopes);
+    Set<SpecializedDependency> specializedDependencies = specializer.specialize(analysis, specializeDependencies);
+    getLog().info("Number of specialized dependencies: " + specializedDependencies.size());
     getLog().info(SEPARATOR);
     getLog().info("DEPTRIM IS CREATING SPECIALIZED POMS");
     getLog().info(SEPARATOR);
 
-    if (createPomTrimmed || createAllPomsTrimmed) {
-      // create pom-debloated.xml
+    if (createPomSpecialized || createAllPomSpecialized) {
+      // The following code creates a pom-debloated.xml
       dependencyManager.getDebloater(analysis).write();
       String debloatedPomPath = project.getBasedir().getAbsolutePath()
           + File.separator
           + DEBLOATED_POM_NAME;
-      // create pom-debloated-spl-*.xml
-      PomUtils pomUtils = new PomUtils(trimmedDependencies, debloatedPomPath, createPomTrimmed, createAllPomsTrimmed);
-      pomUtils.producePoms();
+      // The following code creates a pom-specialized-*.xml from pom-debloated.xml
+      PomUtils pomUtils = new PomUtils(specializedDependencies, debloatedPomPath, createPomSpecialized, createAllPomSpecialized);
+      pomUtils.createPoms();
     }
 
     // Print execution time.

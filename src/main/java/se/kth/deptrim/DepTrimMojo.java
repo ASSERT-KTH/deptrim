@@ -39,24 +39,24 @@ public class DepTrimMojo extends AbstractMojo {
   private MavenSession session;
 
   /**
-   * Add a list of dependencies, identified by their coordinates, to be trimmed by DepTrim during the execution. The format of each dependency is <code>groupId:artifactId:version</code>.
+   * Add a list of dependencies, identified by their coordinates, to be specialized by DepTrim during the execution. The format of each dependency is <code>groupId:artifactId:version</code>.
    */
-  @Parameter(property = "trimDependencies")
-  private Set<String> trimDependencies;
+  @Parameter(property = "specializeDependencies")
+  private Set<String> specializeDependencies;
 
   /**
-   * If this is true, DepTrim creates version of the pom with the trimmed dependencies, called "trimmed-pom.xml", in root of the project.
+   * If this is true, DepTrim creates aversion of the pom, named "pom-specialized.xml", in the root of the project.
    */
-  @Parameter(property = "createPomTrimmed", defaultValue = "false")
-  private boolean createPomTrimmed;
+  @Parameter(property = "createPomSpecialized", defaultValue = "false")
+  private boolean createPomSpecialized;
   /**
-   * If this is true, DepTrim creates all the combinations of the trimmed poms in root of the project.
+   * If this is true, DepTrim creates all the combinations of the specialized poms in the root of the project.
    */
-  @Parameter(property = "createAllPomsTrimmed", defaultValue = "false")
-  private boolean createAllPomsTrimmed;
+  @Parameter(property = "createAllPomSpecialized", defaultValue = "false")
+  private boolean createAllPomSpecialized;
 
   /**
-   * If this is true, DepTrim creates a JSON file with the result of the analysis. The file is called "trimming-result.json" and it is located in /target.
+   * If this is true, DepTrim creates a JSON file with the result of the analysis. The file is called "deptrim-result.json" and it is located in /target.
    */
   @Parameter(property = "createResultJson", defaultValue = "false")
   private boolean createResultJson;
@@ -82,11 +82,10 @@ public class DepTrimMojo extends AbstractMojo {
   private Set<String> ignoreScopes;
 
   /**
-   * If this is true, DepTrim will not analyze the test sources in the project, and, therefore, the dependencies that are only used for testing will be considered as fully used. This property is
-   * useful to  detect dependencies that have compilation scope but are only used during testing. Hence, these dependencies should have a test scope.
+   * Print plugin execution details to the console.
    */
-  @Parameter(property = "ignoreTests", defaultValue = "false")
-  private boolean ignoreTests;
+  @Parameter(property = "verboseMode", defaultValue = "false")
+  private boolean verboseMode;
 
   /**
    * Skip plugin execution completely.
@@ -113,12 +112,13 @@ public class DepTrimMojo extends AbstractMojo {
           ),
           project,
           session,
+          verboseMode,
           skipDepTrim,
           ignoreScopes,
           ignoreDependencies,
-          trimDependencies,
-          createPomTrimmed,
-          createAllPomsTrimmed
+          specializeDependencies,
+          createPomSpecialized,
+          createAllPomSpecialized
       ).execute();
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);

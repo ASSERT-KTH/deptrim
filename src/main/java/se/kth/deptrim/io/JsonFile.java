@@ -9,23 +9,23 @@ import se.kth.depclean.core.analysis.model.ProjectDependencyAnalysis;
 import se.kth.depclean.core.wrapper.DependencyManagerWrapper;
 
 /**
- * A class that writes the results of the DepClean dependency usage analysis to a JSON file.
+ * A class that writes the results of the deptrim dependency usage analysis to a JSON file.
  */
 @Slf4j
 public class JsonFile {
 
   /**
-   * Writes the results of the DepClean dependency usage analysis to a JSON file.
+   * Writes the results of the deptrim dependency usage analysis to a JSON file.
    *
    * @param analysis           the analysis results of each dependency.
    * @param dependencyManager  the dependency manager wrapper.
    * @param createCallGraphCsv true if a callgraph file will be created.
    */
   public void createResultJson(ProjectDependencyAnalysis analysis, DependencyManagerWrapper dependencyManager, boolean createCallGraphCsv) {
-    log.info("Creating depclean-results.json, please wait...");
-    final File jsonFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-results.json");
+    log.info("Creating deptrim-results.json, please wait...");
+    final File jsonFile = new File(dependencyManager.getBuildDirectory() + File.separator + "deptrim-results.json");
     final File treeFile = new File(dependencyManager.getBuildDirectory() + File.separator + "tree.txt");
-    final File csvFile = new File(dependencyManager.getBuildDirectory() + File.separator + "depclean-callgraph.csv");
+    final File csvFile = new File(dependencyManager.getBuildDirectory() + File.separator + "deptrim-callgraph.csv");
     try {
       dependencyManager.generateDependencyTree(treeFile);
     } catch (IOException | InterruptedException e) {

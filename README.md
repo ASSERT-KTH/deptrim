@@ -15,10 +15,9 @@
 
 ## What is DepTrim?
 
-DepTrim is a Maven plugin that automatically specializes the dependencies of a Maven project through software debloating.
-It removes all the unused classes from the dependencies of a Maven project, and thus reduces the size of the final artifact.
-The objective is hardening the [software supply chain](https://www.cesarsotovalero.net/blog/the-software-supply-chain.html) of third-party dependencies of a project by creating dependencies that only contain the types necessary to build the project.
-This is good for security, as it reduces the attack surface of the project, and for performance, as it reduces the size of the final artifact.
+DepTrim is a Maven plugin that automatically specializes the dependencies of a project.
+The objective is hardening the [software supply chain](https://www.cesarsotovalero.net/blog/the-software-supply-chain.html) of third-party dependencies of a project by using dependencies that only contain the classes and interfaces that are actually necessary to build the project.
+Relying on specialized variants dependencies is good for security, as it reduces the attack surface of the project, and for performance, as it reduces the size of the final artifact.
 
 After running DepTrim, a directory named `libs-specialized` is created in the root of the project, which contains the specialized variants of all the dependencies necessary to build the project (i.e., direct and transitive dependencies).
 DepTrim can also create specialized pom, named `pom-specialized.xml`, which points to the specialized versions of the dependencies in the local Maven repository.
@@ -26,10 +25,16 @@ DepTrim does not modify the original source code of the project nor its original
 
 ## Usage
 
-It can be executed as a Maven goal through the command line or integrated directly into the Maven build lifecycle (CI/CD).
-A file named `pom-specialized.xml` will be created in the root of the project, which points to the specialized versions of the dependencies:
+Run DepTrim directly from the command line as follows:
 
-Configure the `pom.xml` file of a Maven project to use DepTrim as part of the build as follows:
+```bash
+cd {PATH_TO_MAVEN_PROJECT}
+mvn compile   
+mvn compiler:testCompile
+mvn se.kth.castor:deptrim-maven-plugin:{DEPTRIM_LATEST_VERSION}:deptrim -DcreatePomSpecialized=true
+```
+
+Alternatively, configure the original `pom.xml` file of the project to use DepTrim as part of the build as follows:
 
 ```xml
 <plugin>
@@ -48,16 +53,10 @@ Configure the `pom.xml` file of a Maven project to use DepTrim as part of the bu
   </executions>
 </plugin>
 ```
-Alternatively, run DepTrim directly from the command line.
 
-```bash
-cd {PATH_TO_MAVEN_PROJECT}
-mvn compile   
-mvn compiler:testCompile
-mvn se.kth.castor:deptrim-maven-plugin:{DEPTRIM_LATEST_VERSION}:deptrim -DcreatePomSpecialized=true
-```
+In both cases, a directory name `libs-specialized` will be created in the root of the project, together with a file named `pom-specialized.xml`, which points to the specialized versions of the dependencies.
 
-## Optional Parameters
+## Optional parameters
 
 The `deptrim-maven-plugin` can be configured with the following additional parameters.
 
@@ -66,8 +65,9 @@ The `deptrim-maven-plugin` can be configured with the following additional param
 | `<specializeDependencies>`  | `Set<String>` | Add a list of dependencies, identified by their coordinates, to be specialized by DepTrim. **Dependency format is:** `groupId:artifactId:version:scope`. An Empty string indicates that all the dependencies in the dependency tree of the project will be specialized (`default`).                                                                                                                                |
 | `<ignoreDependencies>`      | `Set<String>` | Add a list of dependencies, identified by their coordinates, to be ignored by DepTrim during the analysis. This is useful to override incomplete result caused by bytecode-level static analysis. **Dependency format is:** `groupId:artifactId:version:scope`.                                                                                                                                                    |
 | `<ignoreScopes>`            | `Set<String>` | Add a list of scopes, to be ignored by DepTrim during the analysis. Useful to not analyze dependencies with scopes that are not needed at runtime. **Valid scopes are:** `compile`, `provided`, `test`, `runtime`, `system`, `import`. An Empty string indicates no scopes (`default`).                                                                                                                            |
-| `<createPomSpecialized>`    |   `boolean`   | If this is `true`, DepTrim creates a specialized version of the pom file in the root of the project, called `pom-specialized.xml`, which points to the variant of the specialized the dependencies. **Default value is:** `false`.                                                                                                                                                                                 |
-| `<createAllPomSpecialized>` |   `boolean`   | If this is `true`, DepTrim creates all the combinations of specialized version of the original pom in the root of the project (i.e., $2^y$ pom files will be created). Name format is `pom-specialized-n-x-y.xml`, where `n` is the combination number, `x` is the number of specialized dependencies in this combination, and `y` is the total number of specialized dependencies. **Default value is:** `false`. |
+| `<createPomSpecialized>`    |   `boolean`   | If this is `true`, DepTrim creates a specialized version of the POM file in the root of the project, called `pom-specialized.xml`, which points to the variant of the specialized the dependencies. **Default value is:** `false`.                                                                                                                                                                                 |
+| `<createAllPomSpecialized>` |   `boolean`   | If this is `true`, DepTrim creates all the combinations of specialized version of the original POM in the root of the project (i.e., $2^y$ POM files will be created). Name format is `pom-specialized-n-x-y.xml`, where `n` is the combination number, `x` is the number of specialized dependencies in this combination, and `y` is the total number of specialized dependencies. **Default value is:** `false`. |
+| `<verboseMode>`             |   `boolean`   | Run DepTrim in verbose mode. **Default value is:** `false`.                                                                                                                                                                                                                                                                                                                                                        |
 | `<skipDepTrim>`             |   `boolean`   | Skip plugin execution completely. **Default value is:** `false`.                                                                                                                                                                                                                                                                                                                                                   |
 
 [//]: # (TODO: Explain here how to integrate DepTrim in the CI/CD pipeline so that a different variant of the dependencies is used for each build.)
