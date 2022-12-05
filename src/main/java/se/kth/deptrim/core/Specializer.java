@@ -20,7 +20,7 @@ import se.kth.depclean.util.MavenInvoker;
  * A class that trims the dependencies of a project.
  */
 @Slf4j
-public class Trimmer {
+public class Specializer {
 
   private static final String DIRECTORY_TO_EXTRACT_DEPENDENCIES = "dependency";
   private static final String DIRECTORY_TO_LOCATE_THE_DEBLOATED_DEPENDENCIES = "dependency-debloated";
@@ -44,7 +44,7 @@ public class Trimmer {
    * @param mavenLocalRepoUrl  The local Maven repository for deployment of specialized jars.
    * @param ignoreScopes       The scopes to ignore.
    */
-  public Trimmer(String projectCoordinates, String mavenLocalRepoUrl, DependencyManagerWrapper dependencyManager, Set<String> ignoreScopes) {
+  public Specializer(String projectCoordinates, String mavenLocalRepoUrl, DependencyManagerWrapper dependencyManager, Set<String> ignoreScopes) {
     this.projectCoordinates = projectCoordinates;
     this.mavenLocalRepoUrl = mavenLocalRepoUrl;
     this.dependencyManager = dependencyManager;
@@ -57,40 +57,40 @@ public class Trimmer {
    * @param analysis The dependency usage analysis results
    * @return The set of all dependencies
    */
-  public Set<String> getAllDependenciesIfTrimDependenciesFlagIsEmpty(ProjectDependencyAnalysis analysis) {
-    Set<String> dependenciesToTrim = new LinkedHashSet<>();
+  public Set<String> getAllDependencies(ProjectDependencyAnalysis analysis) {
+    Set<String> dependenciesToSpecialize = new LinkedHashSet<>();
     analysis.getDependencyClassesMap()
         .forEach((dependency, types) -> {
           String dependencyCoordinates = dependency.getGroupId() + ":" + dependency.getDependencyId() + ":" + dependency.getVersion();
-          dependenciesToTrim.add(dependencyCoordinates);
+          dependenciesToSpecialize.add(dependencyCoordinates);
         });
-    return dependenciesToTrim;
+    return dependenciesToSpecialize;
   }
 
   /**
    * Trim the unused classes from the dependencies specified by the user based on the usage analysis results.
    *
    * @param analysis         The dependency usage analysis results
-   * @param trimDependencies The dependencies to be trimmed, if empty then trims all the dependencies
+   * @param specializeDependencies The dependencies to be trimmed, if empty then trims all the dependencies
    */
   @SneakyThrows
-  public Set<TrimmedDependency> trimLibClasses(ProjectDependencyAnalysis analysis, Set<String> trimDependencies) {
-    Set<TrimmedDependency> deployedSpecializedDependencies = new LinkedHashSet<>();
-    if (trimDependencies.isEmpty()) {
-      log.info("No dependencies specified, trimming all dependencies except the ignored dependencies.");
-      trimDependencies = getAllDependenciesIfTrimDependenciesFlagIsEmpty(analysis);
+  public Set<SpecializedDependency> specialize(ProjectDependencyAnalysis analysis, Set<String> specializeDependencies) {
+    Set<SpecializedDependency> deployedSpecializedDependencies = new LinkedHashSet<>();
+    if (specializeDependencies.isEmpty()) {
+      log.info("No dependencies specified, specializing all dependencies except the ignored dependencies.");
+      specializeDependencies = getAllDependencies(analysis);
     }
-
-    Set<String> finalTrimDependencies = trimDependencies;
+    Set<String> finalSpecializedDependencies = specializeDependencies;
     analysis
         .getDependencyClassesMap()
         .forEach((dependency, types) -> {
           String dependencyCoordinates = dependency.getGroupId() + ":" + dependency.getDependencyId() + ":" + dependency.getVersion();
-          // debloating only the dependencies provided by the user and if the scope is not ignored
+          // specializing only the dependencies provided by the user and if the scope is not ignored
           if (!types.getUsedTypes().isEmpty()
-              && finalTrimDependencies.contains(dependencyCoordinates)
+              && finalSpecializedDependencies.contains(dependencyCoordinates)
               && !ignoreScopes.contains(dependency.getScope())
-              && !dependencyCoordinates.equals(projectCoordinates)) {
+              && !dependencyCoordinates.equals(projectCoordinates)
+          ) {
             Set<ClassName> unusedTypes = new HashSet<>(types.getAllTypes());
             unusedTypes.removeAll(types.getUsedTypes());
             String dependencyDirName = dependency.getFile().getName().substring(0, dependency.getFile().getName().length() - 4);
@@ -116,24 +116,24 @@ public class Trimmer {
                   log.error("Error deleting file " + file.getPath());
                 }
               }
+
               // Delete all empty directories in destDir.
               se.kth.deptrim.util.FileUtils fileUtils = new se.kth.deptrim.util.FileUtils();
               fileUtils.deleteEmptyDirectories(destDir);
 
-              // Create a new jar file with the debloated classes and move it to libs-deptrim.
-              Path libDeptrimPath = Paths.get("libs-deptrim");
+              // Create a new jar file with the debloated classes and move it to libs-specialized.
+              Path libSpecializedPath = Paths.get("libs-specialized");
               String jarName = destDir.getName() + ".jar";
-              File jarFile = libDeptrimPath.resolve(jarName).toFile();
+              File jarFile = libSpecializedPath.resolve(jarName).toFile();
               try {
-                Files.createDirectories(libDeptrimPath); // create libs-deptrim directory if it does not exist
+                Files.createDirectories(libSpecializedPath); // create libs-deptrim directory if it does not exist
                 se.kth.deptrim.util.JarUtils.createJarFromDirectory(destDir, jarFile);
               } catch (Exception e) {
-                log.error("Error creating trimmed jar for " + destDir.getName());
+                log.error("Error creating specialized jar for " + destDir.getName());
               }
 
-              // Install the dependency in the local repository.
+              // Deploy specialized jars to the local Maven repository.
               try {
-                // Deploying specialized jar to local Maven repository mavenLocalRepoUrl.
                 String mavenDeployCommand = "mvn deploy:deploy-file -Durl="
                     + mavenLocalRepoUrl
                     + " -Dpackaging=jar"
@@ -144,19 +144,19 @@ public class Trimmer {
                 log.info(mavenDeployCommand);
                 MavenInvoker.runCommand(mavenDeployCommand, null);
                 // If successfully deployed
-                TrimmedDependency trimmedDependency = new TrimmedDependency(
+                SpecializedDependency specializedDependency = new SpecializedDependency(
                     dependency.getGroupId(),
                     dependency.getDependencyId(),
                     dependency.getVersion(),
                     GROUP_ID_OF_SPECIALIZED_JAR
                 );
-                deployedSpecializedDependencies.add(trimmedDependency);
+                deployedSpecializedDependencies.add(specializedDependency);
               } catch (IOException | InterruptedException e) {
-                log.error("Error installing the trimmed dependency jar in local repository.");
+                log.error("Error installing the specialized dependency JAR in the local repository.");
                 Thread.currentThread().interrupt();
               }
             } else {
-              log.info("Skipping trimming dependency " + dependencyCoordinates + " because all its types are used.");
+              log.info("Skipping specializing dependency " + dependencyCoordinates + " because all its types are used.");
             }
           }
         });
