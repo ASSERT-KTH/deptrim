@@ -36,8 +36,8 @@ public class DepTrimMojoIT {
   }
 
   @MavenTest
-  @DisplayName("Test that DepTrim creates a trimmed poms")
-  void trimmed_poms_should_be_correct(MavenExecutionResult result) {
+  @DisplayName("Test that DepTrim creates specialized poms")
+  void all_pom_specialized(MavenExecutionResult result) {
     System.out.println("Testing that DepTrim pushes specialized dependencies to the local repository.");
     String LocalRepositoryAbsolutePath = result.getMavenCacheResult().getStdout().toFile().getAbsolutePath();
     String pathToSpecializedCommonsIO = "/se/kth/castor/deptrim/spl/commons-io/2.11.0/commons-io-2.11.0.jar";
@@ -45,21 +45,20 @@ public class DepTrimMojoIT {
     Assertions.assertTrue(Files.exists(new File(LocalRepositoryAbsolutePath + pathToSpecializedCommonsIO).toPath()));
     Assertions.assertTrue(Files.exists(new File(LocalRepositoryAbsolutePath + pathToSpecializedGuava).toPath()));
 
-    System.out.println("Testing that DepTrim pushes specialized dependencies to /libs-deptrim.");
+    System.out.println("Testing that DepTrim pushes specialized dependencies to /libs-specialized.");
     String pathToProject = result.getMavenProjectResult().getTargetBaseDirectory().getAbsolutePath();
-    String pathToSpecializedCommonsIOInProject = "/project/libs-deptrim/commons-io-2.11.0.jar";
-    String pathToSpecializedGuavaInProject = "/project/libs-deptrim/commons-io-2.11.0.jar";
+    String pathToSpecializedCommonsIOInProject = "/project/libs-specialized/commons-io-2.11.0.jar";
+    String pathToSpecializedGuavaInProject = "/project/libs-specialized/commons-io-2.11.0.jar";
     Assertions.assertTrue(Files.exists(new File(pathToProject + pathToSpecializedCommonsIOInProject).toPath()));
     Assertions.assertTrue(Files.exists(new File(pathToProject + pathToSpecializedGuavaInProject).toPath()));
 
-    System.out.println("Testing that DepTrim produces four specialized pom files in the root of the project.");
+    System.out.println("Testing that DepTrim produces four specialized POM files in the root of the project.");
     File pathToProjectDirectory = new File(result.getMavenProjectResult().getTargetBaseDirectory().getAbsolutePath() + "/project");
-    File[] specializedPomFiles = pathToProjectDirectory.listFiles((dirFiles, filename) -> filename.startsWith("pom-debloated-spl-") && filename.endsWith(".xml"));
+    File[] specializedPomFiles = pathToProjectDirectory.listFiles((dirFiles, filename) -> filename.startsWith("pom-specialized_") && filename.endsWith(".xml"));
     assert specializedPomFiles != null;
     Assertions.assertEquals(4, specializedPomFiles.length);
 
-    System.out.println("Testing that the number of dependencies in the specialized pom files are correct.");
-
+    System.out.println("Testing that the number of dependencies in the specialized POM files are correct.");
     for (File specializedPomFile : specializedPomFiles) {
       try {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -73,7 +72,6 @@ public class DepTrimMojoIT {
         System.out.println("Error parsing pom file: " + specializedPomFile.getAbsolutePath());
       }
     }
-
   }
 
 }

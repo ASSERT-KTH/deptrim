@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -11,6 +12,10 @@ import java.util.jar.JarOutputStream;
  * Utility class for creating jar files.
  */
 public class JarUtils {
+
+  private JarUtils() {
+    throw new IllegalStateException("Utility class.");
+  }
 
   /**
    * Create a Jar file from a directory.
@@ -49,7 +54,7 @@ public class JarUtils {
           target.putNextEntry(entry);
           target.closeEntry();
         }
-        for (File nestedFile : source.listFiles()) {
+        for (File nestedFile : Objects.requireNonNull(source.listFiles())) {
           addFile(name, nestedFile, target);
         }
         return;

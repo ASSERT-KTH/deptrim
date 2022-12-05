@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -20,7 +20,7 @@ public class FileUtils {
    * @param directory the directory to delete empty directories from
    */
   public int deleteEmptyDirectories(File directory) {
-    List<File> toBeDeleted = Arrays.stream(directory.listFiles()).sorted()
+    List<File> toBeDeleted = Arrays.stream(Objects.requireNonNull(directory.listFiles())).sorted()
         .filter(File::isDirectory)
         .filter(f -> f.listFiles().length == deleteEmptyDirectories(f)).toList();
     int size = toBeDeleted.size();

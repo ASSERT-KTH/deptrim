@@ -60,7 +60,7 @@
               <goal>deptrim</goal>
             </goals>
             <configuration>
-                <createAllPomsTrimmed>true</createAllPomsTrimmed>
+              <createAllPomSpecialized>true</createAllPomSpecialized>
             </configuration>
           </execution>
         </executions>
