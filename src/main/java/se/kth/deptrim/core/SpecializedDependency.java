@@ -44,7 +44,7 @@ public class SpecializedDependency {
    */
   @Override
   public String toString() {
-    return "TrimmedDependency{"
+    return "SpecializedDependency{"
         + "originalGroupId='" + originalGroupId + '\''
         + ", originalArtifactId='" + originalArtifactId + '\''
         + ", originalVersion='" + originalVersion + '\''

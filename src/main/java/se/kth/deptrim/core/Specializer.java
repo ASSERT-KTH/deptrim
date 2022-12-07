@@ -106,7 +106,7 @@ public class Specializer {
 
             // Remove files in destDir.
             if (!unusedTypes.isEmpty()) {
-              log.info("Trimming dependency " + dependencyCoordinates + ", removing " + unusedTypes.size() + "/" + types.getAllTypes().size() + " unused types.");
+              log.info("Specializing dependency " + dependencyCoordinates + ", removing " + unusedTypes.size() + "/" + types.getAllTypes().size() + " unused types.");
               for (ClassName className : unusedTypes) {
                 String fileName = className.toString().replace(".", File.separator) + ".class";
                 File file = new File(destDir.getAbsolutePath() + File.separator + fileName);
