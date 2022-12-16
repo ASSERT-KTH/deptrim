@@ -1,5 +1,6 @@
 # DepTrim <img src=".img/logo.svg" align="left" height="135px" alt="DepTrim logo"/>
 
+[![Maven Central](https://img.shields.io/maven-central/v/se.kth.castor/deptrim-maven-plugin.svg)](https://search.maven.org/search?q=g:se.kth.castor%20AND%20a:deptrim*)
 [![build](https://github.com/castor-software/deptrim/actions/workflows/build.yml/badge.svg)](https://github.com/castor-software/deptrim/actions/workflows/build.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=castor-software_deptrim&metric=alert_status)](https://sonarcloud.io/dashboard?id=castor-software_deptrim)
 [![codecov](https://codecov.io/gh/castor-software/deptrim/branch/main/graph/badge.svg?token=L70YMFGJ4D)](https://codecov.io/gh/castor-software/deptrim)
