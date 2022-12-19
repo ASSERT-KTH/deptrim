@@ -1,7 +1,5 @@
 package se.kth.deptrim;
 
-import static com.soebes.itf.extension.assertj.MavenITAssertions.assertThat;
-
 import com.soebes.itf.jupiter.extension.MavenJupiterExtension;
 import com.soebes.itf.jupiter.extension.MavenTest;
 import com.soebes.itf.jupiter.maven.MavenExecutionResult;
@@ -32,7 +30,7 @@ public class DepTrimMojoIT {
   @DisplayName("Test that DepTrim runs in an empty Maven project")
   void empty_project(MavenExecutionResult result) {
     System.out.println("Testing that DepTrim runs in an empty Maven project");
-    assertThat(result).isSuccessful(); // should pass
+    Assertions.assertTrue(result.isSuccessful());
   }
 
   @MavenTest
