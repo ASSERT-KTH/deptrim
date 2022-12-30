@@ -92,23 +92,7 @@ public class PomUtils {
       Document document = documentBuilder.parse(new File(debloatedPomPath));
       document.getDocumentElement().normalize();
       NodeList dependencies = document.getDocumentElement().getElementsByTagName("dependency");
-      for (int i = 0; i < dependencies.getLength(); i++) {
-        Element dependencyNode = (Element) dependencies.item(i);
-        Node groupIdNode = dependencyNode.getElementsByTagName("groupId").item(0);
-        Node artifactIdNode = dependencyNode.getElementsByTagName("artifactId").item(0);
-        // When original groupId and artifactId are found in debloated pom,
-        // replace with new coordinates
-        if (groupIdNode.getTextContent().equals(thisDependency.getOriginalGroupId())
-            && artifactIdNode.getTextContent().equals(thisDependency.getOriginalArtifactId())
-        ) {
-          // Found original dependency in debloated POM.
-          // Replacing with specialized dependency.
-          Node versionNode = dependencyNode.getElementsByTagName("version").item(0);
-          groupIdNode.setTextContent(thisDependency.getSpecializedGroupId());
-          artifactIdNode.setTextContent(thisDependency.getSpecializedArtifactId());
-          versionNode.setTextContent(thisDependency.getSpecializedVersion());
-        }
-      }
+      replaceDependencyInPom(thisDependency, dependencies);
       String debloatedAndSpecializedPom = debloatedPomPath.replace("-debloated.xml", "-specialized.xml");
       debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(
           "-specialized.xml",
@@ -117,6 +101,26 @@ public class PomUtils {
       log.info("Created " + new File(debloatedAndSpecializedPom).getName());
       saveUpdatedDomInANewPom(document, debloatedAndSpecializedPom);
       combinationNumber++;
+    }
+  }
+
+  private void replaceDependencyInPom(SpecializedDependency thisDependency, NodeList dependencies) {
+    for (int i = 0; i < dependencies.getLength(); i++) {
+      Element dependencyNode = (Element) dependencies.item(i);
+      Node groupIdNode = dependencyNode.getElementsByTagName("groupId").item(0);
+      Node artifactIdNode = dependencyNode.getElementsByTagName("artifactId").item(0);
+      // When original groupId and artifactId are found in debloated pom,
+      // replace with new coordinates
+      if (groupIdNode.getTextContent().equals(thisDependency.getOriginalGroupId())
+          && artifactIdNode.getTextContent().equals(thisDependency.getOriginalArtifactId())
+      ) {
+        // Found original dependency in debloated POM.
+        // Replacing with specialized dependency.
+        Node versionNode = dependencyNode.getElementsByTagName("version").item(0);
+        groupIdNode.setTextContent(thisDependency.getSpecializedGroupId());
+        artifactIdNode.setTextContent(thisDependency.getSpecializedArtifactId());
+        versionNode.setTextContent(thisDependency.getSpecializedVersion());
+      }
     }
   }
 
@@ -163,23 +167,7 @@ public class PomUtils {
     int nbSpecializedDependencies = oneCombinationOfSpecializedDependencies.size();
     NodeList dependencies = document.getDocumentElement().getElementsByTagName("dependency");
     for (SpecializedDependency thisDependency : oneCombinationOfSpecializedDependencies) {
-      for (int i = 0; i < dependencies.getLength(); i++) {
-        Element dependencyNode = (Element) dependencies.item(i);
-        Node groupIdNode = dependencyNode.getElementsByTagName("groupId").item(0);
-        Node artifactIdNode = dependencyNode.getElementsByTagName("artifactId").item(0);
-        // When original groupId and artifactId are found in debloated pom,
-        // replace with new coordinates
-        if (groupIdNode.getTextContent().equals(thisDependency.getOriginalGroupId())
-            && artifactIdNode.getTextContent().equals(thisDependency.getOriginalArtifactId())
-        ) {
-          // Found original dependency in debloated POM.
-          // Replacing with specialized dependency.
-          Node versionNode = dependencyNode.getElementsByTagName("version").item(0);
-          groupIdNode.setTextContent(thisDependency.getSpecializedGroupId());
-          artifactIdNode.setTextContent(thisDependency.getSpecializedArtifactId());
-          versionNode.setTextContent(thisDependency.getSpecializedVersion());
-        }
-      }
+      replaceDependencyInPom(thisDependency, dependencies);
     }
     String debloatedAndSpecializedPom = debloatedPomPath.replace("-debloated.xml", "-specialized.xml");
     if (createAllPomSpecialized) {
