@@ -91,6 +91,7 @@ public class Specializer {
               && !ignoreScopes.contains(dependency.getScope())
               && !dependencyCoordinates.equals(projectCoordinates)
           ) {
+            log.info("Specializing dependency: {}, with file {}", dependencyCoordinates, dependency.getFile().getName());
             Set<ClassName> unusedTypes = new HashSet<>(types.getAllTypes());
             unusedTypes.removeAll(types.getUsedTypes());
             String dependencyDirName = dependency.getFile().getName().substring(0, dependency.getFile().getName().length() - 4);

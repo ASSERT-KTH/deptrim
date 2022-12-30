@@ -39,7 +39,8 @@ public class DepTrimMojo extends AbstractMojo {
   private MavenSession session;
 
   /**
-   * Add a list of dependencies, identified by their coordinates, to be specialized by DepTrim during the execution. The format of each dependency is <code>groupId:artifactId:version</code>.
+   * Add a list of dependencies, identified by their coordinates, to be specialized by DepTrim during the execution. The format of each dependency is
+   * <code>groupId:artifactId:version</code>.
    */
   @Parameter(property = "specializeDependencies")
   private Set<String> specializeDependencies;
@@ -47,8 +48,13 @@ public class DepTrimMojo extends AbstractMojo {
   /**
    * If this is true, DepTrim creates aversion of the pom, named "pom-specialized.xml", in the root of the project.
    */
-  @Parameter(property = "createPomSpecialized", defaultValue = "false")
-  private boolean createPomSpecialized;
+  @Parameter(property = "createSinglePomSpecialized", defaultValue = "false")
+  private boolean createSinglePomSpecialized;
+  /**
+   * If this is true, DepTrim creates a version of the POM for each specialized dependency in the root of the project.
+   */
+  @Parameter(property = "createDependencySpecializedPerPom", defaultValue = "false")
+  private boolean createDependencySpecializedPerPom;
   /**
    * If this is true, DepTrim creates all the combinations of the specialized poms in the root of the project.
    */
@@ -62,15 +68,15 @@ public class DepTrimMojo extends AbstractMojo {
   private boolean createResultJson;
 
   /**
-   * If this is true, DepTrim creates a CSV file with the result of the analysis with the columns: OriginClass,TargetClass,OriginDependency,TargetDependency. The file is called deptrim-callgraph.csv"
-   * and it is located in /target.
+   * If this is true, DepTrim creates a CSV file with the result of the analysis with the columns: OriginClass,TargetClass,OriginDependency,TargetDependency.
+   * The file is called deptrim-callgraph.csv" and it is located in /target.
    */
   @Parameter(property = "createCallGraphCsv", defaultValue = "false")
   private boolean createCallGraphCsv;
 
   /**
-   * Add a list of dependencies, identified by their coordinates, to be ignored by DepTrim during the analysis and considered as fully used dependencies. Useful to override incomplete result caused by
-   * bytecode-level analysis. Dependency format is <code>groupId:artifactId:version</code>.
+   * Add a list of dependencies, identified by their coordinates, to be ignored by DepTrim during the analysis and considered as fully used dependencies. Useful
+   * to override incomplete result caused by bytecode-level analysis. Dependency format is <code>groupId:artifactId:version</code>.
    */
   @Parameter(property = "ignoreDependencies")
   private Set<String> ignoreDependencies;
@@ -117,7 +123,8 @@ public class DepTrimMojo extends AbstractMojo {
           ignoreScopes,
           ignoreDependencies,
           specializeDependencies,
-          createPomSpecialized,
+          createSinglePomSpecialized,
+          createDependencySpecializedPerPom,
           createAllPomSpecialized
       ).execute();
     } catch (Exception e) {

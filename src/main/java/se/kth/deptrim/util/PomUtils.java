@@ -29,7 +29,8 @@ public class PomUtils {
   Set<SpecializedDependency> specializedDependencies;
   String debloatedPomPath;
 
-  boolean createPomSpecialized;
+  boolean createSinglePomSpecialized;
+  boolean createDependencySpecializedPerPom;
   boolean createAllPomSpecialized;
 
   /**
@@ -39,10 +40,12 @@ public class PomUtils {
    * @param debloatedPomPath        The path to the debloated pom.xml file.
    * @param createAllPomSpecialized Whether to create all pom.xml files trimmed.
    */
-  public PomUtils(Set<SpecializedDependency> specializedDependencies, String debloatedPomPath, boolean createPomSpecialized, boolean createAllPomSpecialized) {
+  public PomUtils(Set<SpecializedDependency> specializedDependencies, String debloatedPomPath, boolean createSinglePomSpecialized,
+      boolean createDependencySpecializedPerPom, boolean createAllPomSpecialized) {
     this.specializedDependencies = specializedDependencies;
     this.debloatedPomPath = debloatedPomPath;
-    this.createPomSpecialized = createPomSpecialized;
+    this.createSinglePomSpecialized = createSinglePomSpecialized;
+    this.createDependencySpecializedPerPom = createDependencySpecializedPerPom;
     this.createAllPomSpecialized = createAllPomSpecialized;
   }
 
@@ -53,8 +56,67 @@ public class PomUtils {
     if (createAllPomSpecialized) {
       createAllCombinationsOfSpecializedPoms();
     }
-    if (createPomSpecialized) {
+    if (createSinglePomSpecialized) {
       createSinglePomSpecialized();
+    }
+    if (createDependencySpecializedPerPom) {
+      log.info("Creating specialized pom files for each dependency.");
+      createDependencySpecializedPerPom();
+    }
+  }
+
+  private void createDependencySpecializedPerPom() {
+    log.info("Number of specialized poms: " + specializedDependencies.size());
+    try {
+      createDependencySpecializedPerPom(specializedDependencies);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Creates a pom-specialized.xml from the pom-debloated.xml produced by DepClean.
+   *
+   * @param specializedDependencies A combination of trimmed dependencies
+   * @return The path of the generated pom-debloated-spl.xml file
+   * @throws Exception when any of this goes wrong :)
+   */
+  private void createDependencySpecializedPerPom(Set<SpecializedDependency> specializedDependencies)
+      throws TransformerException, ParserConfigurationException, IOException, SAXException {
+    int nbSpecializedDependencies = specializedDependencies.size();
+    int combinationNumber = 1;
+    for (SpecializedDependency thisDependency : specializedDependencies) {
+      DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+      documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+      Document document = documentBuilder.parse(new File(debloatedPomPath));
+      document.getDocumentElement().normalize();
+      NodeList dependencies = document.getDocumentElement().getElementsByTagName("dependency");
+      for (int i = 0; i < dependencies.getLength(); i++) {
+        Element dependencyNode = (Element) dependencies.item(i);
+        Node groupIdNode = dependencyNode.getElementsByTagName("groupId").item(0);
+        Node artifactIdNode = dependencyNode.getElementsByTagName("artifactId").item(0);
+        // When original groupId and artifactId are found in debloated pom,
+        // replace with new coordinates
+        if (groupIdNode.getTextContent().equals(thisDependency.getOriginalGroupId())
+            && artifactIdNode.getTextContent().equals(thisDependency.getOriginalArtifactId())
+        ) {
+          // Found original dependency in debloated POM.
+          // Replacing with specialized dependency.
+          Node versionNode = dependencyNode.getElementsByTagName("version").item(0);
+          groupIdNode.setTextContent(thisDependency.getSpecializedGroupId());
+          artifactIdNode.setTextContent(thisDependency.getSpecializedArtifactId());
+          versionNode.setTextContent(thisDependency.getSpecializedVersion());
+        }
+      }
+      String debloatedAndSpecializedPom = debloatedPomPath.replace("-debloated.xml", "-specialized.xml");
+      debloatedAndSpecializedPom = debloatedAndSpecializedPom.replace(
+          "-specialized.xml",
+          "-specialized_" + combinationNumber + "_" + nbSpecializedDependencies + ".xml"
+      );
+      log.info("Created " + new File(debloatedAndSpecializedPom).getName());
+      saveUpdatedDomInANewPom(document, debloatedAndSpecializedPom);
+      combinationNumber++;
     }
   }
 
@@ -125,7 +187,9 @@ public class PomUtils {
           "-specialized.xml",
           "-specialized_" + combinationNumber + "_" + nbSpecializedDependencies + "_" + specializedDependencies.size() + ".xml"
       );
-      System.out.println("POM number: " + " " + debloatedAndSpecializedPom + " " + combinationNumber + " " + nbSpecializedDependencies + " " + specializedDependencies.size());
+      System.out.println(
+          "POM number: " + " " + debloatedAndSpecializedPom + " " + combinationNumber + " " + nbSpecializedDependencies + " " + specializedDependencies.size()
+      );
     }
     saveUpdatedDomInANewPom(document, debloatedAndSpecializedPom);
     return debloatedAndSpecializedPom;

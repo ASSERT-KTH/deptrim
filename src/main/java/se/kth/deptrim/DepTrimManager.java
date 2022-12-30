@@ -35,7 +35,8 @@ public class DepTrimManager {
   private final Set<String> ignoreScopes;
   private final Set<String> ignoreDependencies;
   private final Set<String> specializeDependencies;
-  private final boolean createPomSpecialized;
+  private final boolean createSinglePomSpecialized;
+  private final boolean createDependencySpecializedPerPom;
   private final boolean createAllPomSpecialized;
 
   /**
@@ -86,14 +87,14 @@ public class DepTrimManager {
     getLog().info("DEPTRIM IS CREATING SPECIALIZED POMS");
     getLog().info(SEPARATOR);
 
-    if (createPomSpecialized || createAllPomSpecialized) {
+    if (createSinglePomSpecialized || createAllPomSpecialized || createDependencySpecializedPerPom) {
       // The following code creates a pom-debloated.xml
       dependencyManager.getDebloater(analysis).write();
       String debloatedPomPath = project.getBasedir().getAbsolutePath()
           + File.separator
           + DEBLOATED_POM_NAME;
       // The following code creates a pom-specialized-*.xml from pom-debloated.xml
-      PomUtils pomUtils = new PomUtils(specializedDependencies, debloatedPomPath, createPomSpecialized, createAllPomSpecialized);
+      PomUtils pomUtils = new PomUtils(specializedDependencies, debloatedPomPath, createSinglePomSpecialized, createDependencySpecializedPerPom, createAllPomSpecialized);
       pomUtils.createPoms();
     }
 
