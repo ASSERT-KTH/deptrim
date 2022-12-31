@@ -6,13 +6,17 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class for handling files.
  */
 @Slf4j
+@Getter
 public class FileUtils {
+
+  private int deletedDirectories = 0;
 
   /**
    * Delete all empty directories in the given directory.
@@ -27,6 +31,7 @@ public class FileUtils {
     toBeDeleted.forEach(t -> {
       try {
         Files.delete(t.toPath());
+        deletedDirectories++;
       } catch (IOException e) {
         log.error("Error deleting file " + t.getAbsolutePath());
       }

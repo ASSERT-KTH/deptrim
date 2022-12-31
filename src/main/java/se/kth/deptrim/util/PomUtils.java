@@ -124,13 +124,15 @@ public class PomUtils {
     }
   }
 
-  private void createSinglePomSpecialized() {
+  private String createSinglePomSpecialized() {
+    String generatedPomFile = "";
     try {
-      String generatedPomFile = createSpecializedPomFromDebloatedPom(specializedDependencies, 1);
+      generatedPomFile = createSpecializedPomFromDebloatedPom(specializedDependencies, 1);
       log.info("Created " + new File(generatedPomFile).getName());
     } catch (Exception e) {
       log.error("Error creating specialized pom file: " + e.getMessage());
     }
+    return generatedPomFile;
   }
 
   private void createAllCombinationsOfSpecializedPoms() {
