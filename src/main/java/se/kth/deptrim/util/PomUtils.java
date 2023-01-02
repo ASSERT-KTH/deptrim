@@ -177,7 +177,7 @@ public class PomUtils {
           "-specialized.xml",
           "-specialized_" + combinationNumber + "_" + nbSpecializedDependencies + "_" + specializedDependencies.size() + ".xml"
       );
-      System.out.println(
+      log.debug(
           "POM number: " + " " + debloatedAndSpecializedPom + " " + combinationNumber + " " + nbSpecializedDependencies + " " + specializedDependencies.size()
       );
     }
