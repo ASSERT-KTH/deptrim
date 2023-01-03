@@ -2,8 +2,11 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      versionName:
-        description: 'Version Name'
+      previousVersion:
+        description: 'Previous version'
+        required: true
+      newVersion:
+        description: 'New version'
         required: true
 jobs:
   release:
@@ -19,8 +22,8 @@ jobs:
           distribution: 'adopt-hotspot'
           java-version: 17
           server-id: ossrh
-          server-username: OSSRH_USERNAME # env variable for username in deploy
-          server-password: OSSRH_TOKEN # env variable for token in deploy
+          server-username: OSSRH_USERNAME # env variable for username in release
+          server-password: OSSRH_TOKEN # env variable for token in release
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
@@ -38,7 +41,7 @@ jobs:
           git tag -a $TAG -m "Release v$TAG"
           git push origin $TAG
         env:
-          TAG: ${{ github.event.inputs.versionName }}
+          TAG: ${{ github.event.inputs.newVersion }}
 
       - name: Create Release on GitHub
         id: create_release
@@ -46,7 +49,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.versionName }}
-          release_name: ${{ github.event.inputs.versionName }}
+          tag_name: ${{ github.event.inputs.newVersion }}
+          release_name: ${{ github.event.inputs.newVersion }}
           draft: true
           prerelease: false
+
+      - name: Update README
+        uses: actions/checkout@v3
+        run: |
+          sed -i 's/${{ github.event.inputs.previousVersion }}/${{ github.event.inputs.newVersion }}/g' README.md
+          git config --global user.email "cesarsotovalero@gmail.com"
+          git config --global user.name "$GITHUB_ACTOR"
+          git commit -am "Replace ${{ github.event.inputs.previousVersion }} with ${{ github.event.inputs.newVersion }} in README"
+          git push origin main          
