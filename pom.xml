@@ -5,7 +5,7 @@
   <!-- Coordinates -->
   <groupId>se.kth.castor</groupId>
   <artifactId>deptrim-maven-plugin</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <packaging>maven-plugin</packaging>
 
   <!-- Project description-->
@@ -79,12 +79,12 @@
     <dependency>
       <groupId>se.kth.castor</groupId>
       <artifactId>depclean-core</artifactId>
-      <version>2.0.5</version>
+      <version>2.0.6</version>
     </dependency>
     <dependency>
       <groupId>se.kth.castor</groupId>
       <artifactId>depclean-maven-plugin</artifactId>
-      <version>2.0.5</version>
+      <version>2.0.6</version>
     </dependency>
     <!-- Utils -->
     <dependency>
