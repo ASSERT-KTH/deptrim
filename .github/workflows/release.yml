@@ -61,4 +61,5 @@ jobs:
           git config --global user.email "cesarsotovalero@gmail.com"
           git config --global user.name "$GITHUB_ACTOR"
           git commit -am "Replace ${{ github.event.inputs.previousVersion }} with ${{ github.event.inputs.newVersion }} in README"
-          git push origin main          
+          git push origin main    
+          

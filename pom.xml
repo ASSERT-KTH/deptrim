@@ -54,7 +54,7 @@
     <!-- Java version -->
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <compiler.release>17</compiler.release>
+    <compiler.release>11</compiler.release>
     <javadoc.source>17</javadoc.source>
     <!-- Plugin versions -->
     <jacoco.maven.plugin>0.8.8</jacoco.maven.plugin>

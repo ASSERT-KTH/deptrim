@@ -38,7 +38,7 @@ cd {PATH_TO_MAVEN_PROJECT}
 mvn compile   
 mvn compiler:testCompile
 # Then, run the latest version of DepTrim.
-mvn se.kth.castor:deptrim-maven-plugin:deptrim -DcreateSinglePomSpecialized=true
+mvn se.kth.castor:deptrim-maven-plugin:0.1.1:deptrim -DcreateSinglePomSpecialized=true
 ```
 
 Alternatively, configure the original `pom.xml` file of the project to run DepTrim as part of the build as follows:
@@ -47,7 +47,7 @@ Alternatively, configure the original `pom.xml` file of the project to run DepTr
 <plugin>
   <groupId>se.kth.castor</groupId>
   <artifactId>deptrim-maven-plugin</artifactId>
-  <version>{DEPTRIM_LATEST_VERSION}</version>
+  <version>0.1.1</version>
   <executions>
     <execution>
       <goals>
