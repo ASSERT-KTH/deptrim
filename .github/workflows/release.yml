@@ -55,7 +55,6 @@ jobs:
           prerelease: false
 
       - name: Update README
-        uses: actions/checkout@v3
         run: |
           sed -i 's/${{ github.event.inputs.previousVersion }}/${{ github.event.inputs.newVersion }}/g' README.md
           git config --global user.email "cesarsotovalero@gmail.com"
