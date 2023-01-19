@@ -10,7 +10,7 @@
 
   <!-- Project description-->
   <name>DepTrim</name>
-  <description>DepTrim automatically specializes the software supply chain of dependencies in Maven projects.</description>
+  <description>DepTrim automatically specializes dependencies in Maven projects.</description>
   <url>https://github.com/castor-software/deptrim</url>
 
   <!-- Issues are managed on GitHub -->
@@ -52,10 +52,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Java version -->
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <compiler.release>11</compiler.release>
-    <javadoc.source>17</javadoc.source>
+    <javadoc.source>11</javadoc.source>
     <!-- Plugin versions -->
     <jacoco.maven.plugin>0.8.8</jacoco.maven.plugin>
     <coveralls.maven.plugin>4.3.0</coveralls.maven.plugin>
@@ -358,7 +358,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven.compiler.plugin}</version>
         <configuration>
-          <release>17</release>
+          <release>11</release>
         </configuration>
       </plugin>
       <!-- Maven site -->
@@ -409,7 +409,7 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.10.1</version>
             <configuration>
-              <release>17</release>
+              <release>11</release>
             </configuration>
           </plugin>
           <!-- Maven source plugin -->

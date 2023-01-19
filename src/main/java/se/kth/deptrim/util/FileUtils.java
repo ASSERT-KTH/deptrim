@@ -3,6 +3,7 @@ package se.kth.deptrim.util;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -24,9 +25,19 @@ public class FileUtils {
    * @param directory the directory to delete empty directories from
    */
   public int deleteEmptyDirectories(File directory) {
-    List<File> toBeDeleted = Arrays.stream(Objects.requireNonNull(directory.listFiles())).sorted()
-        .filter(File::isDirectory)
-        .filter(f -> f.listFiles().length == deleteEmptyDirectories(f)).toList();
+    List<File> toSort = new ArrayList<>();
+    for (File f : Objects.requireNonNull(directory.listFiles())) {
+      toSort.add(f);
+    }
+    toSort.sort(null);
+    List<File> toBeDeleted = new ArrayList<>();
+    for (File f : toSort) {
+      if (f.isDirectory()) {
+        if (f.listFiles().length == deleteEmptyDirectories(f)) {
+          toBeDeleted.add(f);
+        }
+      }
+    }
     int size = toBeDeleted.size();
     toBeDeleted.forEach(t -> {
       try {

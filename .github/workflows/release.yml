@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'adopt-hotspot'
-          java-version: 17
+          java-version: 11
           server-id: ossrh
           server-username: OSSRH_USERNAME # env variable for username in release
           server-password: OSSRH_TOKEN # env variable for token in release
