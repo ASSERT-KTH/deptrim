@@ -107,8 +107,9 @@ public class Specializer {
             }
 
             // Remove files in destDir.
-            log.info("Specializing dependency " + dependencyCoordinates + ", removing " + unusedTypes.size() + "/" + types.getAllTypes().size() + " unused types.");
-            if (unusedTypes.isEmpty()){
+            log.info(
+                "Specializing dependency " + dependencyCoordinates + ", removing " + unusedTypes.size() + "/" + types.getAllTypes().size() + " unused types.");
+            if (unusedTypes.isEmpty()) {
               log.info("Skipping specializing dependency " + dependencyCoordinates + " because all its types are used.");
             }
             for (ClassName className : unusedTypes) {
