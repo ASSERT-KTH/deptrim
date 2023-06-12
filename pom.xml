@@ -63,7 +63,7 @@
     <maven.compiler.plugin>3.10.1</maven.compiler.plugin>
     <sonar.maven.plugin>3.9.1.2184</sonar.maven.plugin>
     <maven.site.plugin>4.0.0-M3</maven.site.plugin>
-    <maven.project.info.reports.plugin>3.4.1</maven.project.info.reports.plugin>
+    <maven.project.info.reports.plugin>3.4.5</maven.project.info.reports.plugin>
     <maven.checkstyle.plugin>3.2.0</maven.checkstyle.plugin>
     <!-- Dependency versions -->
     <lombok.version>1.18.24</lombok.version>
