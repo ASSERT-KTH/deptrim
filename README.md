@@ -93,6 +93,23 @@ The `pom-specialized.xml` is created following these steps:
 3. Deploy the modified dependencies in the local Maven repository.
 4. Create a `pom-specialized.xml` so that it uses the specialized variants of the dependencies located in the local Maven repository.
 
+### Known limitations
+
+DepTrim needs to know all the types used by the project under analysis, as well as in its dependencies.
+This is a challenging task, as it requires "seeing" all the project's codebase.
+In particular, it is not possible to detect the usage of [dynamic Java features](https://www.graalvm.org/latest/reference-manual/native-image/dynamic-features/), such as reflection, dynamic proxies, or custom class loaders, in Java.
+This necessitates both a thorough understanding of Java's dynamic features and a careful examination of the project's codebase.
+To detect the utilization of dynamic features within a Java application, we recommend the use of the [GraalVM Tracing Agent](https://www.graalvm.org/22.0/reference-manual/native-image/Agent/).
+
+```bash
+java -agentlib:native-image-agent=config-output-dir=/path/to/config-dir/ -jar yourApp.jar
+```
+By running your application with the agent, it will generate a configuration directory (`/path/to/config-dir/`) containing the files that describe the observed dynamic behavior.
+This useful for specialization tasks, e.g., when specializing dependencies that could be accessed dynamically and lack complete a priori knowledge about all possible dynamic behaviors.
+
+While DepTrim aims to streamline the dependency-trimming process, understanding its limitations and employing additional tools like the GraalVM Tracing Agent can help enhance the process.
+However, note that certain dynamic behaviors, such as the implications of multi-threading or just-in-time (JIT) compilation, may be too subtle or intricate to be detected readily.
+
 ## Installing and building from source
 
 Prerequisites:
